@@ -15,4 +15,16 @@ faire de la complétion de code.
 ```
 pip3 install python-ev3dev2
 ```
+## Code demo
+https://github.com/ev3dev/ev3dev-lang-python-demo
 
+## Documentation library
+https://python-ev3dev.readthedocs.io/en/ev3dev-stretch/
+
+## Imports classique pour chaque fichier Python
+```python
+from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_B, SpeedPercent, MoveTank
+from ev3dev2.sensor import INPUT_1
+from ev3dev2.sensor.lego import TouchSensor
+from ev3dev2.led import Leds
+```
