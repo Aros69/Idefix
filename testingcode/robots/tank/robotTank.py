@@ -8,14 +8,14 @@ import time
 class RobotTank:
     # DATA
     _motors = None
-    _leftMotor = ''
-    _rightMotor = ''
+    _leftMotor = None
+    _rightMotor = None
 
     # METHODS
     def __init__(self, leftMotor, rightMotor):
         self._motors = MoveTank(leftMotor, rightMotor)
-        self._leftMotor = leftMotor
-        self._rightMotor = rightMotor 
+        self._leftMotor = LargeMotor(leftMotor)
+        self._rightMotor = LargeMotor(rightMotor)
 
     def turnLeft(self, leftPuissance, rightPuissance, rotation):
         raise NotImplementedError
