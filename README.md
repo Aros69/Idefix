@@ -28,3 +28,6 @@ from ev3dev2.sensor import INPUT_1
 from ev3dev2.sensor.lego import TouchSensor
 from ev3dev2.led import Leds
 ```
+
+## Threading en Python
+https://docs.python.org/3/library/threading.html
