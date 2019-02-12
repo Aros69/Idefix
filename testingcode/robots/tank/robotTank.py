@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_D, OUTPUT_C, OUTPUT_B,SpeedRPM, SpeedPercent, MoveTank
 from ev3dev2.sensor import INPUT_1, INPUT_4
-from ev3dev2.sensor.lego import TouchSensor, ColorSensor, GyroSensor
+from ev3dev2.sensor.lego import TouchSensor, ColorSensor, UltrasonicSensor
 from ev3dev2.led import Leds
+import os
+import sys
 import time
 
 class RobotTank:
@@ -10,12 +12,17 @@ class RobotTank:
     _motors = None
     _leftMotor = None
     _rightMotor = None
+    _colorSensor = None
+    _ultrasonicSensor = None
+    _nbRotationsFor360turnWithOneMotor = 7.8
 
     # METHODS
-    def __init__(self, leftMotor, rightMotor):
+    def __init__(self, leftMotor, rightMotor, colorSensor, ultrasonicSensor):
         self._motors = MoveTank(leftMotor, rightMotor)
         self._leftMotor = LargeMotor(leftMotor)
         self._rightMotor = LargeMotor(rightMotor)
+        self._colorSensor = ColorSensor(colorSensor)
+        self._ultrasonicSensor = UltrasonicSensor(ultrasonicSensor)
 
     def turnLeft(self, leftPuissance, rightPuissance, rotation):
         raise NotImplementedError
@@ -56,12 +63,50 @@ class RobotTank:
         self._motors.off
     
     def detectColor(self):
-        raise NotImplementedError
+        if(self._colorSensor.red>=130 and self._colorSensor.red<=140):
+            return 'r'
+        elif (self._colorSensor.red>=10 and self._colorSensor.red<=40):
+            return 'n'
+        elif (self._colorSensor.red>=190 and self._colorSensor.red<=220):
+            return 'b'
+        else:
+            return 'q'
+
+    def oneTurnColorDetection(self, rotationStep, side):
+        i = 0
+        if (side=='r'):
+            while (i < self._nbRotationsFor360turnWithOneMotor):
+                self.rightMotorNegativeRotation(50, rotationStep)
+                i+=rotationStep
+        else: 
+            while (i < self._nbRotationsFor360turnWithOneMotor):
+                self.leftMotorNegativeRotation(50, rotationStep)
+                i+=rotationStep
+        return self.detectColor()
+        
 
 
 def main():
-    tank = RobotTank(OUTPUT_A, OUTPUT_D)
-    tank.bothMotorsRotation(50,50,2)
+    tank = RobotTank(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4)
+    #tank.bothMotorsRotation(50,-30,1)
+    tank.oneTurnColorDetection(0.1, 'r')
+    time.sleep(5)
+    tank.oneTurnColorDetection(0.1, 'l')
+
+    #tank._motors.run_forever
+    #tank._motors.on(-20, -20)
+    #temp = 0
+    #while(tank._ultrasonicSensor.distance_centimeters>20.0):
+    #    temp+=1
+    #tank._motors.off
+    #print(tank._ultrasonicSensor.distance_centimeters, file=sys.stderr)
+
+    #i=0
+    #while(tank.detectColor()=='q' and i<100):
+    #    tank.rightMotorNegativeRotation(50, 0.1)
+    #    i=i+1
+    #print(tank.detectColor(), file=sys.stderr)
+
 
 if __name__ == '__main__':
     main()
