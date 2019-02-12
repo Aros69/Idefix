@@ -5,6 +5,8 @@ import os
 import sys
 import time
 import socket
+import pickle
+from command import Command
 
 
 def debug_print(*args, **kwargs):
@@ -26,6 +28,16 @@ def main():
     debug_print('On a reçu un client')
     debug_print(infoClient)
     
+    commandToSend = Command()
+    stopConnexion = False
+    while(not(stopConnexion)):
+        tmp = input()
+        if(tmp == "quit"):
+            stopConnexion = True
+        commandToSend.setString(tmp)
+        data_string = pickle.dumps(commandToSend)
+        socketClient.send(data_string)
+    socketClient.close()
     
 
 

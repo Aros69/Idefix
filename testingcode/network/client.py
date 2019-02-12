@@ -5,6 +5,10 @@ import os
 import sys
 import time
 import socket
+import pickle
+from command import Command
+from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C, OUTPUT_D, SpeedPercent, MoveTank
+
 
 # state constants
 ON = True
@@ -58,6 +62,29 @@ def main():
     # Debug print
     print('Connexion found !')
     debug_print('Connexion found !')
+    
+
+    stopConnexion = False
+    while(not(stopConnexion)):
+        data = connexion.recv(4096)
+        commandReceive = pickle.loads(data)
+        tmp = commandReceive.getString()
+        if(tmp=="quit"):
+            stopConnexion=True
+        print(tmp)
+        if(tmp=="z"):
+            tank_drive = MoveTank(OUTPUT_A, OUTPUT_D)
+            tank_drive.on_for_rotations(SpeedPercent(50), SpeedPercent(50), 1)
+        elif(tmp =="s"):
+            tank_drive = MoveTank(OUTPUT_A, OUTPUT_D)
+            tank_drive.on_for_rotations(SpeedPercent(-50), SpeedPercent(-50), 1)
+        elif(tmp == "q"):
+            tank_drive = MoveTank(OUTPUT_A, OUTPUT_D)
+            tank_drive.on_for_rotations(SpeedPercent(-30), SpeedPercent(50), 1)
+        elif(tmp == "d"):
+            tank_drive = MoveTank(OUTPUT_A, OUTPUT_D)
+            tank_drive.on_for_rotations(SpeedPercent(50), SpeedPercent(-30), 1)
+    connexion.close
 
 
 if __name__ == '__main__':

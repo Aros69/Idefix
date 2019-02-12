@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_D, OUTPUT_C, OUTPUT_B,SpeedRPM, SpeedPercent, MoveTank
-from ev3dev2.sensor import INPUT_1
-from ev3dev2.sensor.lego import TouchSensor, ColorSensor, GyroSensor
+from ev3dev2.sensor import INPUT_1, INPUT_4
+from ev3dev2.sensor.lego import TouchSensor, ColorSensor, UltrasonicSensor
 from ev3dev2.led import Leds
+import os
 import time
 
 class RobotChopper:
@@ -10,12 +11,17 @@ class RobotChopper:
     _motors = None
     _leftMotor = None
     _rightMotor = None
+    _colorSensor = None
+    _ultrasonicSensor = None
 
     # METHODS
-    def __init__(self, leftMotor, rightMotor):
+    def __init__(self, leftMotor, rightMotor, colorSensor, ultrasonicSensor):
         self._motors = MoveTank(leftMotor, rightMotor)
         self._leftMotor = LargeMotor(leftMotor)
         self._rightMotor = LargeMotor(rightMotor) 
+        self._colorSensor = colorSensor(colorSensor)
+        self._ultrasonicSensor = UltrasonicSensor(ultrasonicSensor)
+        os.system('setfont ' + 'Lat15-Terminus24x12')
 
     def turnLeft(self, leftPuissance, rightPuissance, rotation):
         raise NotImplementedError
@@ -54,14 +60,24 @@ class RobotChopper:
 
     def stopMotors(self):
         self._motors.off
+
+    def runUntil10cm(self):
+        self._motors.run_forever()
+        self._motors.on(10, 10)
+        while(self._ultrasonicSensor.distance_centimeters>10.0):
+            print()    
+        self.stopMotors()
     
     def detectColor(self):
         raise NotImplementedError
 
 
 def main():
-    chopper = RobotChopper(OUTPUT_A, OUTPUT_D)
-    chopper.bothMotorsRotation(50,50,2)
+    chopper = RobotChopper(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4)
+    chopper._colorSensor.
+    
+    #print(chopper._ultrasonicSensor.distance_centimeters)
+    #time.sleep(5)
 
 if __name__ == '__main__':
     main()
