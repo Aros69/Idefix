@@ -6,6 +6,7 @@ from ev3dev2.led import Leds
 import os
 import sys
 import time
+from threading import Timer, Thread, Event
 
 class RobotTank:
     # DATA
@@ -83,15 +84,39 @@ class RobotTank:
                 self.leftMotorNegativeRotation(50, rotationStep)
                 i+=rotationStep
         return self.detectColor()
-        
+    
+     # Ultra sonique sensor detect distance from object
+    def ultrasonicDetect(self):
+        while(self._ultrasonicSensor.distance_centimeters > 20):
+            print()
+        self.runForeverAbsorbEnergy()
+        self.stopMotors()
+
+    # Motors will run until it dies or receive command to stop
+    def runForever(self, leftPower, rightPower):
+        self._motors.run_forever()
+        self._motors.on(leftPower,rightPower)
+
+    # Allow the robot to do a little backward avoiding to hit the wall
+    def runForeverAbsorbEnergy(self):
+        self._motors.run_forever()
+        self._motors.on(-8,-8)
 
 
 def main():
     tank = RobotTank(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4)
     #tank.bothMotorsRotation(50,-30,1)
-    tank.oneTurnColorDetection(0.1, 'r')
-    time.sleep(5)
-    tank.oneTurnColorDetection(0.1, 'l')
+    #tank.oneTurnColorDetection(0.1, 'r')
+    #time.sleep(5)
+    #tank.oneTurnColorDetection(0.1, 'l')
+
+    # thread must be run at first to start checking the ultra sonique sensor distance
+    t2 = Thread(target=tank.ultrasonicDetect, args=[])
+    t2.start()
+    
+    # thread which runs a common method
+    t1 = Thread(target=tank.runForever, args=[50,50])
+    t1.start()
 
     #tank._motors.run_forever
     #tank._motors.on(-20, -20)
