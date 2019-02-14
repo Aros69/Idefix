@@ -5,6 +5,9 @@ from ev3dev2.sensor.lego import TouchSensor, ColorSensor, UltrasonicSensor
 from ev3dev2.led import Leds
 import os
 import time
+from threading import Timer, Thread, Event
+from time import sleep
+
 
 class RobotChopper:
     # DATA
@@ -19,9 +22,11 @@ class RobotChopper:
         self._motors = MoveTank(leftMotor, rightMotor)
         self._leftMotor = LargeMotor(leftMotor)
         self._rightMotor = LargeMotor(rightMotor) 
-        self._colorSensor = colorSensor(colorSensor)
+        self._colorSensor = ColorSensor(colorSensor)
         self._ultrasonicSensor = UltrasonicSensor(ultrasonicSensor)
         os.system('setfont ' + 'Lat15-Terminus24x12')
+        #self._leftMotor.stop_action = "brake"
+        #self._rightMotor.stop_action = "brake"
 
     def turnLeft(self, leftPuissance, rightPuissance, rotation):
         raise NotImplementedError
@@ -65,19 +70,48 @@ class RobotChopper:
         self._motors.run_forever()
         self._motors.on(10, 10)
         while(self._ultrasonicSensor.distance_centimeters>10.0):
-            print()    
+            print()
+        self.stopMotors()
+
+    def turnLeftWhenObstacle(self):
+        self._motors.run_forever()
+        self._motors.on(10,10)
+        while(self._ultrasonicSensor.distance_centimeters>10):
+            print()
+        self.stopMotors()
+        self.rightMotorPositiveRotation(10,1)
         self.stopMotors()
     
     def detectColor(self):
         raise NotImplementedError
 
+    # Ultra sonique sensor detect distance from object
+    def ultrasonicDetect(self):
+        while(self._ultrasonicSensor.distance_centimeters > 20):
+            print()
+        self.runForeverAbsorbEnergy()
+        self.stopMotors()
+
+    # Motors will run until it dies or receive command to stop
+    def runForever(self, leftPower, rightPower):
+        self._motors.run_forever()
+        self._motors.on(leftPower,rightPower)
+
+    # Allow the robot to do a little backward avoiding to hit the wall
+    def runForeverAbsorbEnergy(self):
+        self._motors.run_forever()
+        self._motors.on(-5,-5)
 
 def main():
     chopper = RobotChopper(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4)
-    chopper._colorSensor.
     
-    #print(chopper._ultrasonicSensor.distance_centimeters)
-    #time.sleep(5)
+    # thread must be run at first to start checking the ultra sonique sensor distance
+    t2 = Thread(target=chopper.ultrasonicDetect, args=[])
+    t2.start()
+    
+    # thread which runs a common method
+    t1 = Thread(target=chopper.runForever, args=[100,100])
+    t1.start()
 
 if __name__ == '__main__':
     main()
