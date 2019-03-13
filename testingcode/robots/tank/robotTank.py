@@ -16,6 +16,10 @@ class RobotTank:
     _colorSensor = None
     _ultrasonicSensor = None
     _nbRotationsFor360turnWithOneMotor = 7.8
+    _actualColor = 'q'
+    _rightColor = 'q'
+    _leftColor = 'q'
+    _stopDetectColor = False
 
     # METHODS
     def __init__(self, leftMotor, rightMotor, colorSensor, ultrasonicSensor):
@@ -61,17 +65,23 @@ class RobotTank:
         self._rightMotor.off
 
     def stopMotors(self):
+        self._stopDetectColor = True
         self._motors.off
     
     def detectColor(self):
         if(self._colorSensor.red>=130 and self._colorSensor.red<=140):
-            return 'r'
+            self._actualColor = 'r'
         elif (self._colorSensor.red>=10 and self._colorSensor.red<=40):
-            return 'n'
+            self._actualColor = 'n'
         elif (self._colorSensor.red>=190 and self._colorSensor.red<=220):
-            return 'b'
+            self._actualColor = 'b'
         else:
-            return 'q'
+            self._actualColor = 'q'
+
+    def nonStopDetectColor(self):
+        self._stopDetectColor = False
+        while(not(self._stopDetectColor)):
+            self.detectColor()
 
     def oneTurnColorDetection(self, rotationStep, side):
         i = 0
@@ -101,36 +111,89 @@ class RobotTank:
     def runForeverAbsorbEnergy(self):
         self._motors.run_forever()
         self._motors.on(-8,-8)
+    
+    def findLine(self, side):
+        threadFindLine1 = Thread(target=self.nonStopDetectColor, args=[])
+        threadFindLine1.start()
+        if (side=='l'):
+            self.runForever(0, 25)
+            while(self._actualColor=='q'):
+                print()
+            self.stopMotors()
+            self._rightColor = self._actualColor
+            # self.runForever(0, 25)
+            # while(self._actualColor==self._rightColor):
+            #     print()
+            # self.stopMotors()
+            # self._leftColor = self._actualColor
+        else:
+            self.runForever(25, 0)
+            while(self._actualColor=='q'):
+                print()
+            self.stopMotors()
+            self._leftColor = self._actualColor
+            # self.runForever(25, 0)
+            # while(self._actualColor==self._leftColor):
+            #     print()
+            # self.stopMotors()
+            # self._rightColor = self._actualColor
+        print(self._leftColor, file=sys.stderr)
+        print(self._rightColor, file=sys.stderr)
 
+    def runStraigthLine(self):
+        threadWallDetection = Thread(target=self.ultrasonicDetect, args=[])
+        threadWallDetection.start()
+        threadColorDetection = Thread(target=self.nonStopDetectColor, args=[])
+        threadColorDetection.start()
+        if(self._rightColor=='b'):
+            if(self._actualColor!=self._leftColor):
+                self.findLine('r')
+            self.runForever(50, 50)
+            while(self._motors.is_running):
+                if(self._actualColor=='b'):
+                    self.runForever(20, 50)
+                elif self._actualColor=='q':
+                    self.runForever(50, 20)
+                else:
+                    self.runForever(50, 50)
+        else:
+            if(self._actualColor!=self._rightColor):
+                self.findLine('l')
+            self.runForever(50, 50)
+            while(self._motors.is_running):
+                if(self._actualColor=='b'):
+                    self.runForever(50, 20)
+                elif self._actualColor=='q':
+                    self.runForever(20, 50)
+                else:
+                    self.runForever(50, 50)
+    
 
 def main():
     tank = RobotTank(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4)
     #tank.bothMotorsRotation(50,-30,1)
-    #tank.oneTurnColorDetection(0.1, 'r')
-    #time.sleep(5)
-    #tank.oneTurnColorDetection(0.1, 'l')
 
     # thread must be run at first to start checking the ultra sonique sensor distance
-    t2 = Thread(target=tank.ultrasonicDetect, args=[])
-    t2.start()
+    #t2 = Thread(target=tank.ultrasonicDetect, args=[])
+    #t2.start()
     
     # thread which runs a common method
-    t1 = Thread(target=tank.runForever, args=[50,50])
-    t1.start()
+    #t1 = Thread(target=tank.runForever, args=[50,50])
+    #t1.start()
 
-    #tank._motors.run_forever
-    #tank._motors.on(-20, -20)
-    #temp = 0
-    #while(tank._ultrasonicSensor.distance_centimeters>20.0):
-    #    temp+=1
-    #tank._motors.off
-    #print(tank._ultrasonicSensor.distance_centimeters, file=sys.stderr)
-
-    #i=0
-    #while(tank.detectColor()=='q' and i<100):
-    #    tank.rightMotorNegativeRotation(50, 0.1)
-    #    i=i+1
-    #print(tank.detectColor(), file=sys.stderr)
+    
+    
+    #temp = tank._actualColor
+    #oldTemp = temp
+    #while(True):
+    #    oldTemp=temp
+    #    temp=tank._actualColor
+    #    if(temp!=oldTemp):
+    #        print(temp, file=sys.stderr)
+    #tank.findLine('l')
+    tank.findLine('l')
+    
+            
 
 
 if __name__ == '__main__':
