@@ -6,7 +6,7 @@ import networkx as nx
 from networkx.drawing import nx_agraph
 import pygraphviz as pgv
 import re
-
+import directionEnum
 
 
 def dot_to_nxGraph(path):
@@ -39,6 +39,19 @@ def dot_to_nxGraph(path):
 
     return Gpair
 
+def direction(nodeDepart, nodeDestination):
+    d = directionEnum.Direction
+    if nodeDestination[0] - nodeDepart[0] > 0:
+        val = directionEnum.Direction.DOWN
+    elif nodeDestination[0] - nodeDepart[0] < 0:
+        val = directionEnum.Direction.UP
+    elif nodeDestination[1] - nodeDepart[1] > 0:
+        val = directionEnum.Direction.RIGHT
+    elif nodeDestination[1] - nodeDepart[1] < 0:
+        val = directionEnum.Direction.LEFT
+    else:
+        val = None
+    return val
 
 if __name__ == '__main__':
     print("yo man")
