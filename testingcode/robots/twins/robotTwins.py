@@ -9,13 +9,18 @@ from threading import Timer, Thread, Event
 from time import sleep
 
 
-class RobotChopper:
+class RobotTwin:
     # DATA
     _motors = None
     _leftMotor = None
     _rightMotor = None
     _colorSensor = None
     _ultrasonicSensor = None
+    _nbRotationsFor360turnWithOneMotor = 7.8           #à modifier avec les tests, probablement <
+    _actualColor = 'q'
+    _rightColor = 'q'
+    _leftColor = 'q'
+    _stopDetectColor = False
 
     # METHODS
     def __init__(self, leftMotor, rightMotor, colorSensor, ultrasonicSensor):
@@ -29,13 +34,22 @@ class RobotChopper:
         #self._rightMotor.stop_action = "brake"
 
     def turnLeft(self, leftPuissance, rightPuissance, rotation):
-        raise NotImplementedError
+        t1 = Thread(target=self.leftMotorPositiveRotation, args=[leftPuissance,0.52])
+        t1.start()
+        t2 = Thread(target=self.rightMotorNegativeRotation, args=[rightPuissance,0.52])
+        t2.start()
     
     def turnRight(self, leftPuissance, rightPuissance, rotation):
-        raise NotImplementedError
+        t1 = Thread(target=self.rightMotorPositiveRotation, args=[rightPuissance,0.52])
+        t1.start()
+        t2 = Thread(target=self.leftMotorNegativeRotation, args=[leftPuissance,0.52])
+        t2.start()
 
     def turn180(self, leftPuissance, rightPuissance, rotation):
-        raise NotImplementedError
+        t1 = Thread(target=self.leftMotorPositiveRotation, args=[leftPuissance,1.08])
+        t1.start()
+        t3 = Thread(target=self.rightMotorNegativeRotation, args=[rightPuissance,1.08])
+        t3.start()
     
     def bothMotorsRotation(self, leftPuissance, rightPuissance, rotation):
         self._motors.on_for_rotations(SpeedPercent(leftPuissance), SpeedPercent(rightPuissance), rotation)
@@ -89,7 +103,6 @@ class RobotChopper:
     def ultrasonicDetect(self):
         while(self._ultrasonicSensor.distance_centimeters > 20):
             print()
-        self.runForeverAbsorbEnergy()
         self.stopMotors()
 
     # Motors will run until it dies or receive command to stop
@@ -103,15 +116,18 @@ class RobotChopper:
         self._motors.on(-5,-5)
 
 def main():
-    chopper = RobotChopper(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4)
+    twin = RobotTwin(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4)
     
     # thread must be run at first to start checking the ultra sonique sensor distance
-    t2 = Thread(target=chopper.ultrasonicDetect, args=[])
+    t2 = Thread(target=twin.ultrasonicDetect, args=[])
     t2.start()
     
     # thread which runs a common method
-    t1 = Thread(target=chopper.runForever, args=[100,100])
+    t1 = Thread(target=twin.leftMotorPositiveRotation, args=[50,1.08])
     t1.start()
+
+    t3 = Thread(target=twin.rightMotorNegativeRotation, args=[50,1.08])
+    t3.start()
 
 if __name__ == '__main__':
     main()
