@@ -7,6 +7,10 @@ import time
 import socket
 import pickle
 from command import Command
+from RobotCommand.moveForward import RobotMoveForward
+from RobotCommand.turn180 import RobotTurn180
+from RobotCommand.turnLeft import RobotTurnLeft
+from RobotCommand.turnRight import RobotTurnRight
 
 
 def debug_print(*args, **kwargs):
@@ -28,13 +32,17 @@ def main():
     debug_print('On a reçu un client')
     debug_print(infoClient)
     
-    commandToSend = Command()
     stopConnexion = False
     while(not(stopConnexion)):
         tmp = input()
-        if(tmp == "quit"):
-            stopConnexion = True
-        commandToSend.setString(tmp)
+        if(tmp=="z"):
+            commandToSend = RobotMoveForward()
+        elif(tmp =="s"):
+            commandToSend = RobotTurn180()
+        elif(tmp == "q"):
+            commandToSend = RobotTurnLeft()
+        elif(tmp == "d"):
+            commandToSend = RobotTurnRight()
         data_string = pickle.dumps(commandToSend)
         socketClient.send(data_string)
     socketClient.close()

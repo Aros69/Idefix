@@ -1,13 +1,21 @@
 #!/usr/bin/env python3
-'''Hello to the world from ev3dev.org'''
 
 import os
 import sys
 import time
 import socket
 import pickle
-from command import Command
 from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C, OUTPUT_D, SpeedPercent, MoveTank
+from ev3dev2.sensor import INPUT_1, INPUT_4
+
+sys.path.append('../')
+print(sys.path, file=sys.stderr)
+
+from robots.tank.robotTank import RobotTank
+from RobotCommand.moveForward import RobotMoveForward
+from RobotCommand.turn180 import RobotTurn180
+from RobotCommand.turnLeft import RobotTurnLeft
+from RobotCommand.turnRight import RobotTurnRight
 
 
 # state constants
@@ -64,26 +72,29 @@ def main():
     debug_print('Connexion found !')
     
 
+    tank = RobotTank(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4)
     stopConnexion = False
     while(not(stopConnexion)):
         data = connexion.recv(4096)
         commandReceive = pickle.loads(data)
-        tmp = commandReceive.getString()
-        if(tmp=="quit"):
-            stopConnexion=True
-        print(tmp)
-        if(tmp=="z"):
-            tank_drive = MoveTank(OUTPUT_A, OUTPUT_D)
-            tank_drive.on_for_rotations(SpeedPercent(50), SpeedPercent(50), 1)
-        elif(tmp =="s"):
-            tank_drive = MoveTank(OUTPUT_A, OUTPUT_D)
-            tank_drive.on_for_rotations(SpeedPercent(-50), SpeedPercent(-50), 1)
-        elif(tmp == "q"):
-            tank_drive = MoveTank(OUTPUT_A, OUTPUT_D)
-            tank_drive.on_for_rotations(SpeedPercent(-30), SpeedPercent(50), 1)
-        elif(tmp == "d"):
-            tank_drive = MoveTank(OUTPUT_A, OUTPUT_D)
-            tank_drive.on_for_rotations(SpeedPercent(50), SpeedPercent(-30), 1)
+        #tmp = commandReceive.getString()
+        # if(tmp=="quit"):
+        #     stopConnexion=True
+        # print(tmp)
+        # if(tmp=="z"):
+        #     tank_drive = MoveTank(OUTPUT_A, OUTPUT_D)
+        #     tank_drive.on_for_rotations(SpeedPercent(50), SpeedPercent(50), 1)
+        # elif(tmp =="s"):
+        #     tank_drive = MoveTank(OUTPUT_A, OUTPUT_D)
+        #     tank_drive.on_for_rotations(SpeedPercent(-50), SpeedPercent(-50), 1)
+        # elif(tmp == "q"):
+        #     tank_drive = MoveTank(OUTPUT_A, OUTPUT_D)
+        #     tank_drive.on_for_rotations(SpeedPercent(-30), SpeedPercent(50), 1)
+        # elif(tmp == "d"):
+        #     tank_drive = MoveTank(OUTPUT_A, OUTPUT_D)
+        #     tank_drive.on_for_rotations(SpeedPercent(50), SpeedPercent(-30), 1)
+        commandReceive.setRobot(tank)
+        commandReceive.doCommand()
     connexion.close
 
 

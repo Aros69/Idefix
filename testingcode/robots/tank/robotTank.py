@@ -29,14 +29,17 @@ class RobotTank:
         self._colorSensor = ColorSensor(colorSensor)
         self._ultrasonicSensor = UltrasonicSensor(ultrasonicSensor)
 
-    def turnLeft(self, leftPuissance, rightPuissance, rotation):
-        raise NotImplementedError
+    def turnLeft(self):
+        self.bothMotorsRotation(30, -30, -0.85)
     
-    def turnRight(self, leftPuissance, rightPuissance, rotation):
-        raise NotImplementedError
+    def turnRight(self):
+        self.bothMotorsRotation(30, -30, 0.85)
 
-    def turn180(self, leftPuissance, rightPuissance, rotation):
-        raise NotImplementedError
+    def turn180(self):
+        self.bothMotorsRotation(30, -30, 1.7)
+
+    def moveForwardOneSquare(self):
+        self.bothMotorsRotation(50,48, 2.7) #Puisance moteur droit légerement moins puissant pour compenser un soucis
     
     def bothMotorsRotation(self, leftPuissance, rightPuissance, rotation):
         self._motors.on_for_rotations(SpeedPercent(leftPuissance), SpeedPercent(rightPuissance), rotation)
@@ -163,20 +166,14 @@ class RobotTank:
                 if(self._actualColor==self._leftColor):
                     wasBlack=True
                     print(self._actualColor, " >>>>>", file=sys.stderr)
-                    powerLeftMotor = 10
-                    powerRightMotor= -6
-                    #powerRightMotor= 13
+                    powerRightMotor= 13
                 elif(self._actualColor=='q'):
                     if(wasBlack):
                         print(self._actualColor, " >>>>>", file=sys.stderr)
-                        powerLeftMotor = 10
-                        powerRightMotor= -6
-                        #powerRightMotor= 13
+                        powerRightMotor= 13
                     else:
                         print(self._actualColor, " <<<<<", file=sys.stderr)
-                        powerLeftMotor = -6
-                        powerRightMotor= 10
-                        #powerLeftMotor= 13
+                        powerLeftMotor= 13
                 else:
                     wasBlack=False
                     print(self._actualColor, " =====", file=sys.stderr)
