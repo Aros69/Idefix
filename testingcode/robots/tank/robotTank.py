@@ -69,11 +69,11 @@ class RobotTank:
         self._motors.off
     
     def detectColor(self):
-        if(self._colorSensor.red>=130 and self._colorSensor.red<=140):
+        if(self._colorSensor.red>=125 and self._colorSensor.red<=160):
             self._actualColor = 'r'
-        elif (self._colorSensor.red>=10 and self._colorSensor.red<=40):
+        elif (self._colorSensor.red>=10 and self._colorSensor.red<=60):
             self._actualColor = 'n'
-        elif (self._colorSensor.red>=190 and self._colorSensor.red<=220):
+        elif (self._colorSensor.red>=190 and self._colorSensor.red<=230):
             self._actualColor = 'b'
         else:
             self._actualColor = 'q'
@@ -119,54 +119,74 @@ class RobotTank:
             self.runForever(0, 25)
             while(self._actualColor=='q'):
                 print()
-            self.stopMotors()
             self._rightColor = self._actualColor
-            # self.runForever(0, 25)
-            # while(self._actualColor==self._rightColor):
-            #     print()
-            # self.stopMotors()
-            # self._leftColor = self._actualColor
-        else:
-            self.runForever(25, 0)
+            time.sleep(2)
+            self.runForever(0, -25)
             while(self._actualColor=='q'):
                 print()
-            self.stopMotors()
             self._leftColor = self._actualColor
-            # self.runForever(25, 0)
-            # while(self._actualColor==self._leftColor):
-            #     print()
-            # self.stopMotors()
-            # self._rightColor = self._actualColor
+            time.sleep(2)
+            self.stopMotors()
+        else:
+            # do same for right turn
+            print()
         print(self._leftColor, file=sys.stderr)
         print(self._rightColor, file=sys.stderr)
 
+    def findLineDumb(self):
+        #threadColorDetection = Thread(target=self.nonStopDetectColor, args=[])
+        #threadColorDetection.start()
+        self.detectColor()
+        self._rightColor = self._actualColor
+        self.bothMotorsRotation(-50, 30, 0.14) # 0,14 is a special value find by testing 
+        time.sleep(2)
+        self.detectColor()
+        self._leftColor = self._actualColor 
+        self.bothMotorsRotation(-50, 30, -0.14) # 0,14 is a special value find by testing 
+        print("left color : " + self._leftColor + ", right color :"+self._rightColor, file=sys.stderr)
+
+
     def runStraigthLine(self):
+        self.findLineDumb()
         threadWallDetection = Thread(target=self.ultrasonicDetect, args=[])
         threadWallDetection.start()
         threadColorDetection = Thread(target=self.nonStopDetectColor, args=[])
         threadColorDetection.start()
-        if(self._rightColor=='b'):
-            if(self._actualColor!=self._leftColor):
-                self.findLine('r')
-            self.runForever(50, 50)
+        powerLeftMotor = 20
+        powerRightMotor= 20
+        if(self._leftColor!=self._rightColor and self._leftColor!='q' and self._rightColor!='q'):
+            print("Let's go !", file=sys.stderr)
+            wasBlack=False
+            self.runForever(powerLeftMotor, powerRightMotor)
             while(self._motors.is_running):
-                if(self._actualColor=='b'):
-                    self.runForever(20, 50)
-                elif self._actualColor=='q':
-                    self.runForever(50, 20)
+                self.runForever(powerLeftMotor, powerRightMotor)
+                if(self._actualColor==self._leftColor):
+                    wasBlack=True
+                    print(self._actualColor, " >>>>>", file=sys.stderr)
+                    powerLeftMotor = 10
+                    powerRightMotor= -6
+                    #powerRightMotor= 13
+                elif(self._actualColor=='q'):
+                    if(wasBlack):
+                        print(self._actualColor, " >>>>>", file=sys.stderr)
+                        powerLeftMotor = 10
+                        powerRightMotor= -6
+                        #powerRightMotor= 13
+                    else:
+                        print(self._actualColor, " <<<<<", file=sys.stderr)
+                        powerLeftMotor = -6
+                        powerRightMotor= 10
+                        #powerLeftMotor= 13
                 else:
-                    self.runForever(50, 50)
+                    wasBlack=False
+                    print(self._actualColor, " =====", file=sys.stderr)
+                    powerLeftMotor=20
+                    powerRightMotor=20
+                    
+            self.stopMotors()
         else:
-            if(self._actualColor!=self._rightColor):
-                self.findLine('l')
-            self.runForever(50, 50)
-            while(self._motors.is_running):
-                if(self._actualColor=='b'):
-                    self.runForever(50, 20)
-                elif self._actualColor=='q':
-                    self.runForever(20, 50)
-                else:
-                    self.runForever(50, 50)
+            print("Fuck.", file=sys.stderr)
+        print("The end.", file=sys.stderr)
     
 
 def main():
@@ -191,8 +211,10 @@ def main():
     #    if(temp!=oldTemp):
     #        print(temp, file=sys.stderr)
     #tank.findLine('l')
-    tank.findLine('l')
     
+    #tank.findLineDumb()
+    tank.runStraigthLine()
+    print("End of the fucking program !", file=sys.stderr)
             
 
 
