@@ -7,7 +7,7 @@ from robot import Robot
 from enum import Enum
 
 class Color(Enum) :
-    black = 0
+    red = 0
     purple = 1
     blue = 2
 
@@ -26,6 +26,7 @@ class Labyrinthe:
         return graph
 
     def init_Pos_Robot(self):
+        #etats=nx.get_node_attributes(self.graph,{(robot.pos_x,)})
         return
         
 
@@ -34,10 +35,10 @@ class Labyrinthe:
         labels = dict( ((i, j), (i,j) ) for i, j in self.graph.nodes() )
         print(labels)
         etats=nx.get_node_attributes(self.graph,'etat')
-        colors = dict( (n, Color(etats[n]).name) for n in self.graph.nodes() )
+        colors = list( (Color(etats[n]).name) for n in self.graph.nodes() )
         print(colors)
         
-        nx.draw_networkx(self.graph, pos=pos, labels=labels, font_size=8, node_size=600, node_color='blue') 
+        nx.draw_networkx(self.graph, pos=pos, labels=labels, font_size=8, node_size=600, node_color=colors) 
         plt.axis('off')
         plt.show()
 
@@ -47,6 +48,7 @@ def main():
     print(c)
     labyrinthe = Labyrinthe(8,8,robot)
     labyrinthe.init_Labyrinthe()
+    labyrinthe.init_Pos_Robot()
     labyrinthe.display_Graph()
 
 if __name__ == '__main__':
