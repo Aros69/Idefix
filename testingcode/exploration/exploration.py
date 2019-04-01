@@ -31,7 +31,3 @@ if __name__ == '__main__':
     main()
 
 
-# Idée optimisation : ne faire qu'une case sur deux (cadrillage) : (0;0), (0;2), (1;1)... 
-# Faire seulement les cases tel que x+y%2==0
-
-# Autre idée : minimiser les virages car plus lent pour les robots

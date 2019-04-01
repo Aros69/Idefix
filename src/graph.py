@@ -2,9 +2,9 @@
 # from ev3dev2.sensor import INPUT_1
 # from ev3dev2.sensor.lego import TouchSensor
 # from ev3dev2.led import Leds
+import pygraphviz as pgv
 import networkx as nx
 from networkx.drawing import nx_agraph
-import pygraphviz as pgv
 import re
 import directionEnum
 
