@@ -33,24 +33,30 @@ class RobotTwin:
         #self._leftMotor.stop_action = "brake"
         #self._rightMotor.stop_action = "brake"
 
-    def turnLeft(self, leftPuissance, rightPuissance, rotation):
-        t1 = Thread(target=self.leftMotorPositiveRotation, args=[leftPuissance,0.52])
-        t1.start()
-        t2 = Thread(target=self.rightMotorNegativeRotation, args=[rightPuissance,0.52])
-        t2.start()
-    
-    def turnRight(self, leftPuissance, rightPuissance, rotation):
-        t1 = Thread(target=self.rightMotorPositiveRotation, args=[rightPuissance,0.52])
-        t1.start()
-        t2 = Thread(target=self.leftMotorNegativeRotation, args=[leftPuissance,0.52])
-        t2.start()
+    def moveForwardOneSquare(self):
+        self.bothMotorsRotation(50,50, 1)
 
-    def turn180(self, leftPuissance, rightPuissance, rotation):
-        t1 = Thread(target=self.leftMotorPositiveRotation, args=[leftPuissance,1.08])
-        t1.start()
-        t3 = Thread(target=self.rightMotorNegativeRotation, args=[rightPuissance,1.08])
-        t3.start()
+    def turnLeft(self):
+        self.bothMotorsRotation(50, -50, 0.52)
+        # t1 = Thread(target=self.leftMotorPositiveRotation, args=[leftPuissance,0.52])
+        # t1.start()
+        # t2 = Thread(target=self.rightMotorNegativeRotation, args=[rightPuissance,0.52])
+        # t2.start()
     
+    def turnRight(self):
+        self.bothMotorsRotation(50, -50, -0.52)
+        # t1 = Thread(target=self.rightMotorPositiveRotation, args=[rightPuissance,0.52])
+        # t1.start()
+        # t2 = Thread(target=self.leftMotorNegativeRotation, args=[leftPuissance,0.52])
+        # t2.start()
+
+    def turn180(self):
+        self.bothMotorsRotation(50, -50, 1.08)
+        # t1 = Thread(target=self.leftMotorPositiveRotation, args=[leftPuissance,1.08])
+        # t1.start()
+        # t3 = Thread(target=self.rightMotorNegativeRotation, args=[rightPuissance,1.08])
+        # t3.start()
+
     def bothMotorsRotation(self, leftPuissance, rightPuissance, rotation):
         self._motors.on_for_rotations(SpeedPercent(leftPuissance), SpeedPercent(rightPuissance), rotation)
         time.sleep(1)

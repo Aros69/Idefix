@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_D, OUTPUT_C, OUTPUT_B,SpeedRPM, SpeedPercent, MoveTank
-from ev3dev2.sensor import INPUT_1, INPUT_4
-from ev3dev2.sensor.lego import TouchSensor, ColorSensor, UltrasonicSensor
+from ev3dev2.sensor import INPUT_1, INPUT_3, INPUT_4
+from ev3dev2.sensor.lego import TouchSensor, ColorSensor, UltrasonicSensor, GyroSensor
 from ev3dev2.led import Leds
 import os
 import sys
@@ -15,28 +15,37 @@ class RobotTank:
     _rightMotor = None
     _colorSensor = None
     _ultrasonicSensor = None
+    _gyroSensor = None
     _nbRotationsFor360turnWithOneMotor = 7.8
     _actualColor = 'q'
     _rightColor = 'q'
     _leftColor = 'q'
+    _angleForward = 0
     _stopDetectColor = False
 
     # METHODS
-    def __init__(self, leftMotor, rightMotor, colorSensor, ultrasonicSensor):
+    def __init__(self, leftMotor, rightMotor, colorSensor, ultrasonicSensor, gyroSensor):
         self._motors = MoveTank(leftMotor, rightMotor)
         self._leftMotor = LargeMotor(leftMotor)
         self._rightMotor = LargeMotor(rightMotor)
         self._colorSensor = ColorSensor(colorSensor)
         self._ultrasonicSensor = UltrasonicSensor(ultrasonicSensor)
+        self._gyroSensor = GyroSensor(gyroSensor)
+        self._gyroSensor.mode = GyroSensor.MODE_GYRO_ANG
+        self._gyroSensor.reset
+        self._angleForward = self._gyroSensor.angle
 
     def turnLeft(self):
         self.bothMotorsRotation(30, -30, -0.85)
+        self._angleForward-=90
     
     def turnRight(self):
         self.bothMotorsRotation(30, -30, 0.85)
+        self._angleForward+=90
 
     def turn180(self):
         self.bothMotorsRotation(30, -30, 1.7)
+        self._angleForward+=180
 
     def moveForwardOneSquare(self):
         self.bothMotorsRotation(50,48, 2.7) #Puisance moteur droit légerement moins puissant pour compenser un soucis
@@ -187,7 +196,7 @@ class RobotTank:
     
 
 def main():
-    tank = RobotTank(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4)
+    tank = RobotTank(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4, INPUT_3)
     #tank.bothMotorsRotation(50,-30,1)
 
     # thread must be run at first to start checking the ultra sonique sensor distance
@@ -210,7 +219,10 @@ def main():
     #tank.findLine('l')
     
     #tank.findLineDumb()
-    tank.runStraigthLine()
+    #tank.runStraigthLine()
+    while(True):
+        print(tank._gyroSensor.angle, file=sys.stderr)
+        time.sleep(5)
     print("End of the fucking program !", file=sys.stderr)
             
 
