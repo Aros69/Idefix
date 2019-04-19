@@ -3,9 +3,9 @@ import networkx as nx
 from networkx.drawing import nx_agraph
 import re
 import matplotlib.pyplot as plt
-from robot import Robot
+from testingcode.exploration import robot
 from enum import Enum
-import directionEnum
+from testingcode.exploration import directionEnum
 
 class Color(Enum) :
     red = 0
@@ -13,12 +13,23 @@ class Color(Enum) :
     blue = 2
 
 class Labyrinthe:
-    def __init__(self, dim_x, dim_y, robot, robot_pos):
+    dim_x = None
+    dim_y = None
+    robot_pos = None
+    graph = None
+
+    # TODO: check avec oreste pour sur la pertinence de la class robot
+    # def __init__(self, dim_x, dim_y, robot, robot_pos):
+    #     self.dim_x = dim_x
+    #     self.dim_y = dim_y
+    #     self.robot = robot
+    #     self.robot_pos = robot_pos # a tuple (i,j)
+
+    def __init__(self, dim_x, dim_y, robot_pos):
         self.dim_x = dim_x
         self.dim_y = dim_y
-        self.robot = robot
         self.robot_pos = robot_pos # a tuple (i,j)
-
+    
     def init_Labyrinthe(self):
         graph = nx.grid_2d_graph(self.dim_x,self.dim_y)
         self.graph = graph
@@ -67,32 +78,34 @@ class Labyrinthe:
         short_path = []
         short_path_lg = self.dim_x * self.dim_y
         for target in target_nodes:
-            path = nx.shortest_path(self.graph, self.robot_pos, target)
+            if nx.has_path(self.graph, self.robot_pos, target):
+                path = nx.shortest_path(self.graph, self.robot_pos, target)
 
-            if len(path) < short_path_lg:
-                short_path_lg = len(path)
-                short_part = path
+                if len(path) < short_path_lg:
+                    short_path_lg = len(path)
+                    short_part = path
         
         return short_part
 
-    def create2DGraph(self, dim_x, dim_y):
+    def init2DGraph(self):
         g = nx.Graph()
 
-        for i in range (0, dim_x):
-            for j in range (0, dim_y):
+        for i in range (0, self.dim_x):
+            for j in range (0, self.dim_y):
                 x = i
                 y = j
 
-                if i > 0 and i < (dim_x-1):
+                if i > 0 and i < (self.dim_x-1):
                     g.add_edge( (i,j),(i-1,j) )
                     g.add_edge( (i,j),(i+1,j) )
-                if j > 0 and j < (dim_y-1):
+                if j > 0 and j < (self.dim_y-1):
                     g.add_edge( (i,j),(i,j-1) )
                     g.add_edge( (i,j),(i,j+1) )
 
+        self.graph = g
         return g
 
-    def dot_to_nxGraph(path):
+    def dot_to_nxGraph(self, path):
         """
             read a graph dot file then return a nxGraph
 
@@ -122,7 +135,7 @@ class Labyrinthe:
 
         return Gpair
 
-    def direction(nodeDepart, nodeDestination):
+    def direction(self, nodeDepart, nodeDestination):
         d = directionEnum.Direction
         if nodeDestination[0] - nodeDepart[0] > 0:
             val = directionEnum.Direction.DOWN
@@ -138,21 +151,23 @@ class Labyrinthe:
     
 
 def main():
-    robot = Robot(4,4,1)
-    c = Color(1).name
-    print(c)
-    labyrinthe = Labyrinthe(4,4,robot, (0,1))
-    labyrinthe.init_Labyrinthe()
+    pass
+    # robot = Robot(4,4,1)
+    # c = Color(1).name
+    # print(c)
+    # labyrinthe = Labyrinthe(4,4,robot, (0,1))
+    # labyrinthe.init_Labyrinthe()
     # labyrinthe.init_Pos_Robot()
     # labyrinthe.display_Graph()
    
     
     # calculate all shortest path.
-    to_visit = labyrinthe.not_visited_node()
-    path = labyrinthe.nearest_node(to_visit)
+    # to_visit = labyrinthe.not_visited_node()
+    # path = labyrinthe.nearest_node(to_visit)
     # transforme into robot direction mouvement
     # if chemin don't exist.
     # update graph then loop
+    # graph.remove_edge
     
     # if destinations.
     # scan, update graph
