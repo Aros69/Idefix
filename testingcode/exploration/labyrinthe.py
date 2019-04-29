@@ -26,7 +26,9 @@ class Labyrinthe:
         return graph
 
     def init_Pos_Robot(self):
-        #etats=nx.get_node_attributes(self.graph,{(robot.pos_x,)})
+        attrs = {(self.robot.pos_x,self.robot.pos_y): {'etat':1}}
+        print(attrs)
+        nx.set_node_attributes(self.graph,attrs)
         return
         
 
@@ -36,7 +38,8 @@ class Labyrinthe:
         print(labels)
         etats=nx.get_node_attributes(self.graph,'etat')
         colors = list( (Color(etats[n]).name) for n in self.graph.nodes() )
-        print(colors)
+        #c = dict( (n, Color(etats[n]).name) for n in self.graph.nodes() )
+        # print(c)
         
         nx.draw_networkx(self.graph, pos=pos, labels=labels, font_size=8, node_size=600, node_color=colors) 
         plt.axis('off')
