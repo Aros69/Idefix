@@ -151,6 +151,35 @@ class Labyrinthe:
         else:
             val = None
         return val
+
+    def get_robot_pos(self):
+        return (self.robot.pos_x, self.robot.pos_y)
+
+    def adjacents(self, node):
+        return self.graph.neighbors(node)
+
+    def check_adjacents_all_visited(self,node):
+        for adj in self.adjacents(node):
+            etat = self.graph.node[adj]['etat']
+            if (not(etat == 1 or etat == 2)):
+                return
+        x, y = node                                 #ou
+        attrs = {(x, y): {'etat':2}}                #self.graph.node[pos]['etat'] = 2
+        nx.set_node_attributes(self.graph,attrs)    #?
+
+    def deplacer_explo_robot(self, nodeDestination):
+        etat = self.graph.node[nodeDestination]['etat']
+        if etat == 0:
+            self.graph.node[nodeDestination]['etat'] = 1
+        check_adjacents_all_visited(get_robot_pos)
+        self.set_robot_pos(nodeDestination)
+        for adj in self.adjacents(nodeDestination):
+            check_adjacents_all_visited(adj)
+
+    def exploration(self):
+        while(path = self.nearest_node(self.not_visited_node())):
+            for node in path:
+                self.deplacer_explo_robot(node)
     
 
 def main():
