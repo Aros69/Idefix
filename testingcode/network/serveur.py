@@ -7,6 +7,7 @@ import time
 import socket
 import pickle
 from command import Command
+from RobotCommand.robotCommand import RobotCommand
 from RobotCommand.moveForward import RobotMoveForward
 from RobotCommand.turn180 import RobotTurn180
 from RobotCommand.turnLeft import RobotTurnLeft
@@ -43,6 +44,11 @@ def main():
             commandToSend = RobotTurnLeft()
         elif(tmp == "d"):
             commandToSend = RobotTurnRight()
+        elif(tmp == "quit" or tmp == "exit"):
+            stopConnexion = True
+            commandToSend = RobotCommand()
+        else:
+            commandToSend = RobotCommand()
         data_string = pickle.dumps(commandToSend)
         socketClient.send(data_string)
     socketClient.close()
