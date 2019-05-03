@@ -8,6 +8,9 @@ import sys
 import time
 from threading import Timer, Thread, Event
 
+# sys.path.insert(0, "/your/path/to/idefix") # if you want to execute main in this file
+from testingcode.exploration.labyrinthe import Labyrinthe
+
 class RobotTank:
     # DATA
     _motors = None
@@ -22,9 +25,11 @@ class RobotTank:
     _leftColor = 'q'
     _angleForward = 0
     _stopDetectColor = False
+    _labyrinthe = None
+    _position = None # Tuple (i,j)
 
     # METHODS
-    def __init__(self, leftMotor, rightMotor, colorSensor, ultrasonicSensor, gyroSensor):
+    def __init__(self, leftMotor, rightMotor, colorSensor, ultrasonicSensor, gyroSensor, position):
         self._motors = MoveTank(leftMotor, rightMotor)
         self._leftMotor = LargeMotor(leftMotor)
         self._rightMotor = LargeMotor(rightMotor)
@@ -34,6 +39,10 @@ class RobotTank:
         self._gyroSensor.mode = GyroSensor.MODE_GYRO_ANG
         self._gyroSensor.reset
         self._angleForward = self._gyroSensor.angle
+        self._position = position
+        self._labyrinthe = Labyrinthe(8,8, position)
+
+        self._labyrinthe.init2DGraph()
 
     def turnLeft(self):
         self.bothMotorsRotation(30, -30, -0.85)
@@ -195,8 +204,74 @@ class RobotTank:
         print("The end.", file=sys.stderr)
     
 
+    '''
+    robot will try to follow the path given. if block then update labyrinth
+
+    :param: path a array of node
+    :return: true if final node achieved else false
+    '''
+    def robot_follow(self, path):
+        # Loop throught path Attention, path contain actual position of robot
+        # Get direction of each next node by using self._labyrinthe.direction()
+        # Move robot
+        # if block, update position of robot in self._labyrinthe
+        # if block, remove edge using self._labyrinthe.graph.remove_edge()
+        # if block, return False
+
+        # if not block, update position of robot
+        # if not block, return True
+
+        return True
+
+    '''
+    robot will check if the edge around is blocked
+    :return: list of not accesible edge, else empty list
+    '''
+    def robot_scan(self):
+        # do a 360 to check if edge exist (no wall)
+        # if not exist add to edges list, format [( (0,0), (0,1) ), ( (0,0), (1,1) ), ...]
+        return []
+
+    '''
+    :return: True if labyrinthe corrected else other robot have to help
+    '''
+    def correct_labyrinth(self):
+        
+        # calculate all shortest path.
+        to_visit = self._labyrinthe.not_visited_node()
+        path_block = False
+
+        while len(to_visit) > 0 and not path_block:
+            path = self._labyrinthe.nearest_node(to_visit)
+            
+            # if there are a path
+            if len(path) > 0:
+                sucess = self.robot_follow(path)
+
+                if (sucess):
+                    edges = self.robot_scan()
+                    self._labyrinthe.graph.remove_edges_from(edges)
+                    to_visit.remove((path[-1]))
+            else:
+                path_block = True
+        
+        #to_visit is now a list of not achieved path that other robot need to check
+        return not path_block
+
+
+        # transforme into robot direction mouvement
+        # if chemin don't exist.
+        # update graph then loop
+        # graph.remove_edge
+        
+        # if destinations.
+        # scan, update graph
+        # remove node from not visited, then check for next shortest path.
+
+
 def main():
-    tank = RobotTank(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4, INPUT_3)
+    pass
+    # tank = RobotTank(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4, INPUT_3, (0,0)) #to decoment
     #tank.bothMotorsRotation(50,-30,1)
 
     # thread must be run at first to start checking the ultra sonique sensor distance
@@ -220,10 +295,10 @@ def main():
     
     #tank.findLineDumb()
     #tank.runStraigthLine()
-    while(True):
-        print(tank._gyroSensor.angle, file=sys.stderr)
-        time.sleep(5)
-    print("End of the fucking program !", file=sys.stderr)
+    # while(True): # to decomment
+    #     print(tank._gyroSensor.angle, file=sys.stderr)
+    #     time.sleep(5)
+    # print("End of the fucking program !", file=sys.stderr)
             
 
 
