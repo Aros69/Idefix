@@ -194,10 +194,11 @@ class Labyrinthe:
         for adj in self.adjacents(nodeDestination):
             check_adjacents_all_visited(adj)
 
-    def exploration(self):
-        while(path = self.nearest_node(self.not_visited_node())):
-            for node in path:
-                self.deplacer_explo_robot(node)
+    # A qui est ce code? dire à bao anh
+    # def exploration(self):
+    #     while(path = self.nearest_node(self.not_visited_node())):
+    #         for node in path:
+    #             self.deplacer_explo_robot(node)
     
     def set_size(self, x, y, dim_x, dim_y):
         self.offset_x = x
