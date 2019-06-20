@@ -9,6 +9,7 @@ import time
 from threading import Timer, Thread, Event
 
 # sys.path.insert(0, "/your/path/to/idefix") # if you want to execute main in this file
+sys.path.insert(0, "/home/baoanh/Travail/Master1/idefix/")
 from testingcode.exploration.labyrinthe import Labyrinthe
 
 class RobotTank:
@@ -29,7 +30,7 @@ class RobotTank:
     _position = None # Tuple (i,j)
 
     # METHODS
-    def __init__(self, leftMotor, rightMotor, colorSensor, ultrasonicSensor, gyroSensor, position):
+    def __init__(self, leftMotor, rightMotor, colorSensor, ultrasonicSensor, gyroSensor, position, labyrinthe):
         self._motors = MoveTank(leftMotor, rightMotor)
         self._leftMotor = LargeMotor(leftMotor)
         self._rightMotor = LargeMotor(rightMotor)
@@ -40,7 +41,8 @@ class RobotTank:
         self._gyroSensor.reset
         self._angleForward = self._gyroSensor.angle
         self._position = position
-        self._labyrinthe = Labyrinthe(8,8, position)
+        # self._labyrinthe = Labyrinthe(0, 0, 8,8, position)
+        self._labyrinthe = labyrinthe
 
         self._labyrinthe.init2DGraph()
 
@@ -232,6 +234,7 @@ class RobotTank:
         # if not exist add to edges list, format [( (0,0), (0,1) ), ( (0,0), (1,1) ), ...]
         return []
 
+    #TODO à vérifié avec l'algo bidon
     '''
     :return: True if labyrinthe corrected else other robot have to help
     '''
@@ -256,7 +259,7 @@ class RobotTank:
                 path_block = True
         
         #to_visit is now a list of not achieved path that other robot need to check
-        return not path_block
+        return not path_block, to_visit
 
 
         # transforme into robot direction mouvement
@@ -268,10 +271,16 @@ class RobotTank:
         # scan, update graph
         # remove node from not visited, then check for next shortest path.
 
+    def get_position(self):
+        return self._position
+
+    def get_labyrinthe(self):
+        return self._labyrinthe
+
 
 def main():
     pass
-    # tank = RobotTank(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4, INPUT_3, (0,0)) #to decoment
+    tank = RobotTank(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4, INPUT_3, (0,0)) #to decoment
     #tank.bothMotorsRotation(50,-30,1)
 
     # thread must be run at first to start checking the ultra sonique sensor distance

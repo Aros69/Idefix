@@ -3,10 +3,14 @@ import networkx as nx
 from networkx.drawing import nx_agraph
 import re
 import matplotlib.pyplot as plt
+import sys
+sys.path.insert(0, "D:\\Data\\Travail\\Universite\\master\\idefix")
+
 from testingcode.exploration import robot
 from enum import Enum
 from testingcode.exploration import directionEnum
 
+import random
 class Color(Enum) :
     red = 0
     purple = 1
@@ -25,7 +29,9 @@ class Labyrinthe:
     #     self.robot = robot
     #     self.robot_pos = robot_pos # a tuple (i,j)
 
-    def __init__(self, dim_x, dim_y, robot_pos):
+    def __init__(self, x, y, dim_x, dim_y, robot_pos):
+        self.offset_x = x
+        self.offset_y = y
         self.dim_x = dim_x
         self.dim_y = dim_y
         self.robot_pos = robot_pos # a tuple (i,j)
@@ -63,16 +69,30 @@ class Labyrinthe:
     :return: list of tupple
     '''
     def not_visited_node(self):
-        node = []
-        j = 0
-        for i in range (0, self.dim_x):
-            # if pair number
-            for j in range (j, self.dim_y, 2):
-                node.append((i,j))
+        nodes = []
+        
+        # make j and robot position have same parity
+        if self.robot_pos[1]%2 == 0 and self.offset_y%2 != 0:
+            j = self.offset_y + 1
+        elif self.robot_pos[1]%2 != 0 and self.offset_y%2 == 0:
+            j = self.offset_y + 1
+        else:
+            j = self.offset_y
 
-            j = j% self.dim_y-1
-            j = j%2
-        return node
+        for i in range (self.offset_x, self.offset_x + self.dim_x):
+            # if pair number
+            for j in range (j, self.offset_y + self.dim_y, 2):
+                nodes.append((i,j))
+
+            j = j% (self.offset_y + self.dim_y-1)
+            j = self.offset_y + (j%2)
+
+        # TODO pas nécessaire si on ne change pas le graph
+        # clean node for not 2D graph
+        # for node in nodes:
+        #     if not self.graph.has_node(node):
+        #         nodes.remove(node)
+        return nodes
     
     def nearest_node(self, target_nodes):
         short_path = []
@@ -83,22 +103,20 @@ class Labyrinthe:
 
                 if len(path) < short_path_lg:
                     short_path_lg = len(path)
-                    short_part = path
+                    short_path = path
         
-        return short_part
+        return short_path
 
     def init2DGraph(self):
         g = nx.Graph()
 
-        for i in range (0, self.dim_x):
-            for j in range (0, self.dim_y):
-                x = i
-                y = j
+        for i in range (self.offset_x, self.offset_x + self.dim_x):
+            for j in range (self.offset_y, self.offset_y + self.dim_y):
 
-                if i > 0 and i < (self.dim_x-1):
+                if i > self.offset_x and i < (self.offset_x + self.dim_x-1):
                     g.add_edge( (i,j),(i-1,j) )
                     g.add_edge( (i,j),(i+1,j) )
-                if j > 0 and j < (self.dim_y-1):
+                if j > self.offset_y and j < (self.offset_y + self.dim_y-1):
                     g.add_edge( (i,j),(i,j-1) )
                     g.add_edge( (i,j),(i,j+1) )
 
@@ -149,6 +167,12 @@ class Labyrinthe:
             val = None
         return val
     
+    def set_size(self, x, y, dim_x, dim_y):
+        self.offset_x = x
+        self.offset_y = y
+        self.dim_x = dim_x
+        self.dim_y = dim_y
+
 
 def main():
     pass
@@ -159,19 +183,58 @@ def main():
     # labyrinthe.init_Labyrinthe()
     # labyrinthe.init_Pos_Robot()
     # labyrinthe.display_Graph()
-   
-    
+        
+
+    robotPos = (7,2)
+    laby = Labyrinthe(5, 0, 4,4,robotPos)
+    laby.init2DGraph()
+
+    # TODO il ne faut pas géré le cas départ ou le robot est sur le noeud avec un remove
+    # TODO certe ça optimise mais pour la généricité quand le robot doit aider les autres c'est mieux.
     # calculate all shortest path.
-    # to_visit = labyrinthe.not_visited_node()
-    # path = labyrinthe.nearest_node(to_visit)
-    # transforme into robot direction mouvement
-    # if chemin don't exist.
-    # update graph then loop
-    # graph.remove_edge
+    to_visit = laby.not_visited_node()
+    # to_visit.remove(robotPos)
+    path_block = False
+
+
+    while len(to_visit) > 0 and not path_block:
+        print ("to_visit = ", to_visit)
+        path = laby.nearest_node(to_visit)
+        
+        print("path = ", path)
+
+        # if there are a path
+        if len(path) > 0:
+            # sucess = random.choice([True,False])
+            sucess = True
+
+            if (sucess):
+                robotPos = (path[-1])
+
+                neighbNode = [(robotPos[0] + 1,robotPos[1]),
+                                (robotPos[0] - 1,robotPos[1]),
+                                (robotPos[0],robotPos[1] + 1),
+                                (robotPos[0],robotPos[1] - 1)
+                            ]
+                edges = []
+                for i in range (0, random.randrange(4)):
+                    node = random.choice(neighbNode)
+                    neighbNode.remove(node)
+                    node = (robotPos, node)
+                    edges.append(node)
+
+                print ('scan = ', edges)
+                laby.graph.remove_edges_from(edges)
+                to_visit.remove((path[-1]))
+                laby.set_robot_pos(path[-1])
+        else:
+            print ("PATH BLOCK")
+            path_block = True
     
-    # if destinations.
-    # scan, update graph
-    # remove node from not visited, then check for next shortest path.
+    pos = dict( (n, n) for n in laby.graph.nodes() )
+    nx.draw_networkx(laby.graph, pos = pos) 
+    plt.axis('off')
+    plt.show()
 
 if __name__ == '__main__':
     main()

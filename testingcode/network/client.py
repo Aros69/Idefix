@@ -16,7 +16,8 @@ from RobotCommand.robotCommand import RobotCommand
 from RobotCommand.moveForward import RobotMoveForward
 from RobotCommand.turn180 import RobotTurn180
 from RobotCommand.turnLeft import RobotTurnLeft
-from RobotCommand.turnRight import RobotTurnRight
+from RobotCommand.turnRight import RobotTurnRights
+
 
 def debug_print(*args, **kwargs):
     print(*args, **kwargs, file=sys.stderr)
