@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
+
+from ev3dev2 import get_current_platform
 from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_D, OUTPUT_C, OUTPUT_B,SpeedRPM, SpeedPercent, MoveTank
-from ev3dev2.sensor import INPUT_1, INPUT_4
-from ev3dev2.sensor.lego import TouchSensor, ColorSensor, UltrasonicSensor
+from ev3dev2.sensor import Sensor, INPUT_1, INPUT_2, INPUT_3, INPUT_4
+from ev3dev2.sensor.lego import TouchSensor, ColorSensor, UltrasonicSensor, GyroSensor
 from ev3dev2.led import Leds
 import os
 import time
+import sys
+import random
 from threading import Timer, Thread, Event
 from time import sleep
 
@@ -16,46 +20,81 @@ class RobotTwin:
     _rightMotor = None
     _colorSensor = None
     _ultrasonicSensor = None
-    _nbRotationsFor360turnWithOneMotor = 7.8           #à modifier avec les tests, probablement <
+    _compassSensor = None
+    _baseAngle = 0
+    _actualAngle = 0
+    _isWallAhead = True
+    _threadCompass = None
+    _threadSonic = None
     _actualColor = 'q'
     _rightColor = 'q'
     _leftColor = 'q'
     _stopDetectColor = False
+    _stopThread = False
 
     # METHODS
-    def __init__(self, leftMotor, rightMotor, colorSensor, ultrasonicSensor):
+    def __init__(self, leftMotor, rightMotor, colorSensor, ultrasonicSensor, gyroSensor):
         self._motors = MoveTank(leftMotor, rightMotor)
         self._leftMotor = LargeMotor(leftMotor)
         self._rightMotor = LargeMotor(rightMotor) 
         self._colorSensor = ColorSensor(colorSensor)
         self._ultrasonicSensor = UltrasonicSensor(ultrasonicSensor)
-        os.system('setfont ' + 'Lat15-Terminus24x12')
-        #self._leftMotor.stop_action = "brake"
-        #self._rightMotor.stop_action = "brake"
+        self._compassSensor = Sensor(INPUT_2)
+        sleep(1)
+        self._baseAngle = self._compassSensor.value()
+        self._actualAngle = self._baseAngle
+        #self._threadCompass = Thread(target=self.setActualAngle, args=[])
+        self._threadSonic = Thread(target=self.setIsWallAhead, args=[])
+        #self._threadCompass.start()
+        self._threadSonic.start()
+        sleep(1)
 
+        
     def moveForwardOneSquare(self):
-        self.bothMotorsRotation(50,50, 1)
+        if(not(self._isWallAhead)):
+            self.bothMotorsRotation(50,50, 1.8)
+            self.orientationCorrection()
 
     def turnLeft(self):
-        self.bothMotorsRotation(50, -50, 0.52)
-        # t1 = Thread(target=self.leftMotorPositiveRotation, args=[leftPuissance,0.52])
-        # t1.start()
-        # t2 = Thread(target=self.rightMotorNegativeRotation, args=[rightPuissance,0.52])
-        # t2.start()
-    
+        #self.bothMotorsRotation(50, -40, -0.6)
+        angleObjectif = (self._baseAngle+90)%360
+        self.bothMotorsRotation(50, -40, -90/146) # 146 = facteur de rotation d'après une rotation de moteur
+        time.sleep(1)
+        self._actualAngle = self._compassSensor.value()
+        self._baseAngle = angleObjectif
+        self.orientationCorrection()
+
     def turnRight(self):
-        self.bothMotorsRotation(50, -50, -0.52)
-        # t1 = Thread(target=self.rightMotorPositiveRotation, args=[rightPuissance,0.52])
-        # t1.start()
-        # t2 = Thread(target=self.leftMotorNegativeRotation, args=[leftPuissance,0.52])
-        # t2.start()
+        angleObjectif = (self._baseAngle-90)%360
+        self.bothMotorsRotation(50, -40, 90/146) # 146 = facteur de rotation d'après une rotation de moteur
+        time.sleep(1)
+        self._actualAngle = self._compassSensor.value()
+        self._baseAngle = angleObjectif
+        self.orientationCorrection()
+
+    def orientationCorrection(self):
+        sleep(0.2)
+        angleDif = self._baseAngle - self._compassSensor.value()
+        if(angleDif<-1 or angleDif>1):
+            while(self._compassSensor.value()<self._baseAngle-1 or self._compassSensor.value()>self._baseAngle+1):
+                if(self._compassSensor.value()>self._baseAngle and self._compassSensor.value()<self._baseAngle+180%360):
+                    self.bothMotorsRotation(5, -4, 2/146)
+                elif(self._compassSensor.value()<self._baseAngle and self._compassSensor.value()>self._baseAngle-180%360) :
+                    self.bothMotorsRotation(5, -4, -2/146)
+                else :
+                    #print("Je sais pas quoi faire", file=sys.stderr)
+                    self.bothMotorsRotation(5, -4, -2/146)
+                #print("objectif = ", self._baseAngle, " actuel = ", self._compassSensor.value(), file=sys.stderr)
+                sleep(0.5)
+                
 
     def turn180(self):
-        self.bothMotorsRotation(50, -50, 1.08)
-        # t1 = Thread(target=self.leftMotorPositiveRotation, args=[leftPuissance,1.08])
-        # t1.start()
-        # t3 = Thread(target=self.rightMotorNegativeRotation, args=[rightPuissance,1.08])
-        # t3.start()
+        angleObjectif = (self._baseAngle-180)%360
+        self.bothMotorsRotation(50, -40, 180/146) # 146 = facteur de rotation d'après une rotation de moteur
+        time.sleep(1)
+        self._actualAngle = self._compassSensor.value()
+        self._baseAngle = angleObjectif
+        self.orientationCorrection()
 
     def bothMotorsRotation(self, leftPuissance, rightPuissance, rotation):
         self._motors.on_for_rotations(SpeedPercent(leftPuissance), SpeedPercent(rightPuissance), rotation)
@@ -85,23 +124,11 @@ class RobotTwin:
 
     def stopMotors(self):
         self._motors.off
-
-    def runUntil10cm(self):
-        self._motors.run_forever()
-        self._motors.on(10, 10)
-        while(self._ultrasonicSensor.distance_centimeters>10.0):
-            print()
-        self.stopMotors()
-
-    def turnLeftWhenObstacle(self):
-        self._motors.run_forever()
-        self._motors.on(10,10)
-        while(self._ultrasonicSensor.distance_centimeters>10):
-            print()
-        self.stopMotors()
-        self.rightMotorPositiveRotation(10,1)
-        self.stopMotors()
     
+    def getAngle(self):
+        self._actualAngle = self._compassSensor.value()
+        return self._compassSensor.value()
+
     def detectColor(self):
         raise NotImplementedError
 
@@ -121,19 +148,68 @@ class RobotTwin:
         self._motors.run_forever()
         self._motors.on(-5,-5)
 
-def main():
-    twin = RobotTwin(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4)
-    
-    # thread must be run at first to start checking the ultra sonique sensor distance
-    t2 = Thread(target=twin.ultrasonicDetect, args=[])
-    t2.start()
-    
-    # thread which runs a common method
-    t1 = Thread(target=twin.leftMotorPositiveRotation, args=[50,1.08])
-    t1.start()
+    def setActualAngle(self):
+        while(not(self._stopThread)):
+            self._actualAngle = self._compassSensor.value()
 
-    t3 = Thread(target=twin.rightMotorNegativeRotation, args=[50,1.08])
-    t3.start()
+    def setIsWallAhead(self):
+        while(not(self._stopThread)):
+            self._isWallAhead = self._ultrasonicSensor.distance_centimeters<10
+            #print(self._ultrasonicSensor.distance_centimeters, file=sys.stderr)
+
+def main():
+    twin = RobotTwin(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4, INPUT_3)
+
+    i=0
+    x=-1
+    while(i<100):
+        x = random.randrange(5)
+        if(x==0 or x==1):
+            twin.moveForwardOneSquare()
+        elif (x==2):
+            twin.turnLeft()
+        elif (x==3):
+            twin.turnRight()
+        else:
+            twin.turn180()
+        i+=1
+        print(i, file=sys.stderr)
+    twin._stopThread = True
+
+    #twin.turnLeft()
+    #twin.moveForwardOneSquare()
+    #twin.turnRight()
+    #twin.turn180()
+    #twin.moveForwardOneSquare()
+
+    #print(x.mode, file=sys.stderr)
+    #print(x.value(), file=sys.stderr)
+
+    #twin.turnRight()
+    #print(x.value(), file=sys.stderr)
+    #x.mode = b"BEGIN-CAL"
+    
+    #print(ev3dev_sysinfo, file=sys.stderr)
+
+    #twin.turnLeft()
+    #twin.turnRight()
+    #twin.turn180()
+    #twin.turn180()
+
+    # thread must be run at first to start checking the ultra sonique sensor distance
+    # t2 = Thread(target=twin.ultrasonicDetect, args=[])
+    # t2.start()
+    
+    # # thread which runs a common method
+    # t1 = Thread(target=twin.leftMotorPositiveRotation, args=[50,1.08])
+    # t1.start()
+
+    # t3 = Thread(target=twin.rightMotorNegativeRotation, args=[50,1.08])
+    # t3.start()
+
+    #x.command = 'BEGIN-CAL'
+    #twin.turn1080()
+    #x.command = 'END-CAL'
 
 if __name__ == '__main__':
     main()

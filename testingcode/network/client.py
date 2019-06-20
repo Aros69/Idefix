@@ -6,7 +6,7 @@ import time
 import socket
 import pickle
 from ev3dev2.motor import OUTPUT_A, OUTPUT_D
-from ev3dev2.sensor import INPUT_1, INPUT_4
+from ev3dev2.sensor import INPUT_1, INPUT_3, INPUT_4
 
 sys.path.append('../')
 
@@ -36,7 +36,7 @@ def main():
     debug_print('Connexion found !')
     
     #tank = RobotTank(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4)
-    tank = RobotTwin(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4)
+    tank = RobotTwin(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4, INPUT_3)
     stopConnexion = False
     while(not(stopConnexion)):
         data = connexion.recv(4096)
