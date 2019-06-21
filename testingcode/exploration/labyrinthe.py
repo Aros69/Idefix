@@ -230,18 +230,32 @@ def main():
     path_block = False
 
 
+    path_block = False
+    
+    edge_deleted = []
+
+
     while len(to_visit) > 0 and not path_block:
-        print ("to_visit = ", to_visit)
+        # print ("to_visit = ", to_visit)
         path = laby.nearest_node(to_visit)
         
-        print("path = ", path)
+        # print("path = ", path)
 
-        # if there are a path
+        # if there are a path (we also consider case where robot is already on correct case for generic)
         if len(path) > 0:
-            # sucess = random.choice([True,False])
-            sucess = True
+            # simulation of block during go to node
+            if (len(path) > 1):
+                success = random.choice([True,False])
+                success = False
+                if not success:
+                    node_block = random.randint(1, len(path) - 1)
 
-            if (sucess):
+
+            else:
+                success = True
+
+            
+            if (success):
                 robotPos = (path[-1])
 
                 neighbNode = [(robotPos[0] + 1,robotPos[1]),
@@ -256,12 +270,19 @@ def main():
                     node = (robotPos, node)
                     edges.append(node)
 
-                print ('scan = ', edges)
+                # print ('scan = ', edges)
+                edge_deleted += edges #TODO deleted edge, tempo function
                 laby.graph.remove_edges_from(edges)
                 to_visit.remove((path[-1]))
                 laby.set_robot_pos(path[-1])
+            
+            else:
+                robotPos = (path[node_block-1])
+                laby.set_robot_pos(path[node_block-1])
+                laby.graph.remove_edge(path[node_block-1],  path[node_block])
+                
         else:
-            print ("PATH BLOCK")
+            # print ("PATH BLOCK")
             path_block = True
     
     pos = dict( (n, n) for n in laby.graph.nodes() )
