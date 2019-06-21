@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_D, OUTPUT_C, OUTPUT_B,SpeedRPM, SpeedPercent, MoveTank
-from ev3dev2.sensor import INPUT_1, INPUT_3, INPUT_4
+from ev3dev2.sensor import Sensor, INPUT_1, INPUT_2, INPUT_3, INPUT_4
 from ev3dev2.sensor.lego import TouchSensor, ColorSensor, UltrasonicSensor, GyroSensor
-from ev3dev2.led import Leds
 import os
 import sys
 import time
+import random
 from threading import Timer, Thread, Event
 
-# sys.path.insert(0, "/your/path/to/idefix") # if you want to execute main in this file
-from testingcode.exploration.labyrinthe import Labyrinthe
+#sys.path.insert(0, "/your/path/to/idefix") # if you want to execute main in this file
+#from testingcode.exploration.labyrinthe import Labyrinthe
 
 class RobotTank:
     # DATA
@@ -18,103 +18,119 @@ class RobotTank:
     _rightMotor = None
     _colorSensor = None
     _ultrasonicSensor = None
-    _gyroSensor = None
-    _nbRotationsFor360turnWithOneMotor = 7.8
-    _actualColor = 'q'
-    _rightColor = 'q'
-    _leftColor = 'q'
-    _angleForward = 0
-    _stopDetectColor = False
+    _compassSensor = None
+    _isWallAhead = True
+    _actualColor = 0
+    _rightColor = 0
+    _leftColor = 0
+    _threadSonic = None
+    _threadColor = None
+    _stopThread = False
     _labyrinthe = None
     _position = None # Tuple (i,j)
 
     # METHODS
-    def __init__(self, leftMotor, rightMotor, colorSensor, ultrasonicSensor, gyroSensor, position):
+    def __init__(self, leftMotor, rightMotor, colorSensor, ultrasonicSensor, compassSensor, position):
         self._motors = MoveTank(leftMotor, rightMotor)
         self._leftMotor = LargeMotor(leftMotor)
         self._rightMotor = LargeMotor(rightMotor)
         self._colorSensor = ColorSensor(colorSensor)
         self._ultrasonicSensor = UltrasonicSensor(ultrasonicSensor)
-        self._gyroSensor = GyroSensor(gyroSensor)
-        self._gyroSensor.mode = GyroSensor.MODE_GYRO_ANG
-        self._gyroSensor.reset
-        self._angleForward = self._gyroSensor.angle
+        self._compassSensor = Sensor(INPUT_2)
+        time.sleep(1)
+        self._baseAngle = self._compassSensor.value()
+        self._actualAngle = self._baseAngle
+        self._threadSonic = Thread(target=self.setIsWallAhead, args=[])
+        self._threadColor = Thread(target=self.setColor, args=[])
+        self._threadSonic.start()
+        self._threadColor.start()
+        time.sleep(1)
         self._position = position
-        self._labyrinthe = Labyrinthe(8,8, position)
-
-        self._labyrinthe.init2DGraph()
+        #self._labyrinthe = Labyrinthe(8,8, position)
+        #self._labyrinthe.init2DGraph()
 
     def turnLeft(self):
+        angleObjectif = (self._baseAngle+90)%360
         self.bothMotorsRotation(30, -30, -0.85)
-        self._angleForward-=90
+        time.sleep(1)
+        self._actualAngle = self._compassSensor.value()
+        self._baseAngle = angleObjectif
+        self.orientationCorrection()
+        
     
     def turnRight(self):
+        angleObjectif = (self._baseAngle-90)%360
         self.bothMotorsRotation(30, -30, 0.85)
-        self._angleForward+=90
+        time.sleep(1)
+        self._actualAngle = self._compassSensor.value()
+        self._baseAngle = angleObjectif
+        self.orientationCorrection()
+        
 
     def turn180(self):
+        angleObjectif = (self._baseAngle-180)%360
         self.bothMotorsRotation(30, -30, 1.7)
-        self._angleForward+=180
+        time.sleep(1)
+        self._actualAngle = self._compassSensor.value()
+        self._baseAngle = angleObjectif
+        self.orientationCorrection()
 
     def moveForwardOneSquare(self):
-        self.bothMotorsRotation(50,48, 2.7) #Puisance moteur droit légerement moins puissant pour compenser un soucis
+        if(not(self._isWallAhead)):
+            #Puisance moteur droit légerement moins puissant pour compenser un soucis (48 peut être)
+            self.bothMotorsRotation(50,50, 2.5) 
+            self.orientationCorrection()
     
     def bothMotorsRotation(self, leftPuissance, rightPuissance, rotation):
         self._motors.on_for_rotations(SpeedPercent(leftPuissance), SpeedPercent(rightPuissance), rotation)
         time.sleep(1)
-    
-    def rightMotorPositiveRotation(self, puissance, rotation):
-        self._rightMotor.on_for_rotations(SpeedPercent(puissance), rotation)
-        time.sleep(1)
-    
-    def rightMotorNegativeRotation(self, puissance, rotation):
-        self._rightMotor.on_for_rotations(SpeedPercent(-puissance), rotation)
-        time.sleep(1)
-    
-    def leftMotorPositiveRotation(self, puissance, rotation):
-        self._leftMotor.on_for_rotations(SpeedPercent(puissance), rotation)
-        time.sleep(1)
-    
-    def leftMotorNegativeRotation(self, puissance, rotation):
-        self._leftMotor.on_for_rotations(SpeedPercent(-puissance), rotation)
-        time.sleep(1)
-    
-    def stopLeftMotor(self):
-        self._leftMotor.off
-    
-    def stopRightMotor(self):
-        self._rightMotor.off
 
     def stopMotors(self):
-        self._stopDetectColor = True
         self._motors.off
     
-    def detectColor(self):
-        if(self._colorSensor.red>=125 and self._colorSensor.red<=160):
-            self._actualColor = 'r'
-        elif (self._colorSensor.red>=10 and self._colorSensor.red<=60):
-            self._actualColor = 'n'
-        elif (self._colorSensor.red>=190 and self._colorSensor.red<=230):
-            self._actualColor = 'b'
+    def color(self):
+        if(self._colorSensor.color == self._colorSensor.COLOR_BLACK):
+            self._actualColor = self._colorSensor.COLOR_BLACK
+            #print("couleur (noire) = ", self._actualColor, file=sys.stderr)
+        elif(self._colorSensor.color == self._colorSensor.COLOR_RED):
+            self._actualColor = self._colorSensor.COLOR_RED
+            #print("couleur (rouge) = ", self._actualColor, file=sys.stderr)
+        elif(self._colorSensor.color == self._colorSensor.COLOR_WHITE):
+            self._actualColor = self._colorSensor.COLOR_WHITE
+            #print("couleur (blanc) = ", self._actualColor, file=sys.stderr)
         else:
-            self._actualColor = 'q'
+            self._actualColor = self._colorSensor.COLOR_BROWN
+            #print("couleur (marron) = ", self._actualColor, file=sys.stderr)
 
-    def nonStopDetectColor(self):
-        self._stopDetectColor = False
-        while(not(self._stopDetectColor)):
-            self.detectColor()
+    def scanColor(self):
+        if(self._actualColor!=self._colorSensor.COLOR_BROWN):
+            # balayage jusqu'a marron
+            while(self._actualColor != self._colorSensor.COLOR_BROWN):
+                # Tourne à gauche (normalement)
+                self.runForever(-6,6) 
+                #self.bothMotorsRotation(12, -12, -0.05)
+            self.stopMotors()
+            print("couleur = ", self._actualColor, file=sys.stderr)
+        while(self._actualColor == self._colorSensor.COLOR_BROWN):
+            # Tourne à droite (normalement)
+            self.runForever(6, -6)
+            #self.bothMotorsRotation(12, -12, 0.05)
+        self.stopMotors()
+        self._leftColor = self._actualColor
+        print("couleur = ", self._actualColor, file=sys.stderr)
+        while(self._actualColor == self._leftColor or self._actualColor == self._colorSensor.COLOR_BROWN):
+            # Tourne à droite (normalement)
+            self.runForever(6, -6)
+            #self.bothMotorsRotation(12, -12, 0.05)
+        self.stopMotors()
+        self._rightColor = self._actualColor
+        print("couleur = ", self._actualColor, file=sys.stderr)
+        while(self._actualColor != self._leftColor):
+            self.runForever(-6,6)
+        self.stopMotors()
+        #self.bothMotorsRotation(12, -12, -0.05)
 
-    def oneTurnColorDetection(self, rotationStep, side):
-        i = 0
-        if (side=='r'):
-            while (i < self._nbRotationsFor360turnWithOneMotor):
-                self.rightMotorNegativeRotation(50, rotationStep)
-                i+=rotationStep
-        else: 
-            while (i < self._nbRotationsFor360turnWithOneMotor):
-                self.leftMotorNegativeRotation(50, rotationStep)
-                i+=rotationStep
-        return self.detectColor()
+    
     
      # Ultra sonique sensor detect distance from object
     def ultrasonicDetect(self):
@@ -132,76 +148,30 @@ class RobotTank:
     def runForeverAbsorbEnergy(self):
         self._motors.run_forever()
         self._motors.on(-8,-8)
-    
-    def findLine(self, side):
-        threadFindLine1 = Thread(target=self.nonStopDetectColor, args=[])
-        threadFindLine1.start()
-        if (side=='l'):
-            self.runForever(0, 25)
-            while(self._actualColor=='q'):
-                print()
-            self._rightColor = self._actualColor
-            time.sleep(2)
-            self.runForever(0, -25)
-            while(self._actualColor=='q'):
-                print()
-            self._leftColor = self._actualColor
-            time.sleep(2)
-            self.stopMotors()
-        else:
-            # do same for right turn
-            print()
-        print(self._leftColor, file=sys.stderr)
-        print(self._rightColor, file=sys.stderr)
 
-    def findLineDumb(self):
-        #threadColorDetection = Thread(target=self.nonStopDetectColor, args=[])
-        #threadColorDetection.start()
-        self.detectColor()
-        self._rightColor = self._actualColor
-        self.bothMotorsRotation(-50, 30, 0.14) # 0,14 is a special value find by testing 
-        time.sleep(2)
-        self.detectColor()
-        self._leftColor = self._actualColor 
-        self.bothMotorsRotation(-50, 30, -0.14) # 0,14 is a special value find by testing 
-        print("left color : " + self._leftColor + ", right color :"+self._rightColor, file=sys.stderr)
+    def orientationCorrection(self):
+        time.sleep(0.2)
+        angleDif = self._baseAngle - self._compassSensor.value()
+        if(angleDif<-1 or angleDif>1):
+            while(self._compassSensor.value()<self._baseAngle-1 or self._compassSensor.value()>self._baseAngle+1):
+                if(self._compassSensor.value()>self._baseAngle and self._compassSensor.value()<self._baseAngle+180%360):
+                    self.bothMotorsRotation(6, -6, 4/146)
+                elif(self._compassSensor.value()<self._baseAngle and self._compassSensor.value()>self._baseAngle-180%360) :
+                    self.bothMotorsRotation(6, -6, -4/146)
+                else :
+                    #print("Je sais pas quoi faire", file=sys.stderr)
+                    self.bothMotorsRotation(6, -6, -4/146)
+                #print("objectif = ", self._baseAngle, " actuel = ", self._compassSensor.value(), file=sys.stderr)
+                time.sleep(0.5)
 
+    def setColor(self):
+        while(not(self._stopThread)):
+            self.color()
 
-    def runStraigthLine(self):
-        self.findLineDumb()
-        threadWallDetection = Thread(target=self.ultrasonicDetect, args=[])
-        threadWallDetection.start()
-        threadColorDetection = Thread(target=self.nonStopDetectColor, args=[])
-        threadColorDetection.start()
-        powerLeftMotor = 20
-        powerRightMotor= 20
-        if(self._leftColor!=self._rightColor and self._leftColor!='q' and self._rightColor!='q'):
-            print("Let's go !", file=sys.stderr)
-            wasBlack=False
-            self.runForever(powerLeftMotor, powerRightMotor)
-            while(self._motors.is_running):
-                self.runForever(powerLeftMotor, powerRightMotor)
-                if(self._actualColor==self._leftColor):
-                    wasBlack=True
-                    print(self._actualColor, " >>>>>", file=sys.stderr)
-                    powerRightMotor= 13
-                elif(self._actualColor=='q'):
-                    if(wasBlack):
-                        print(self._actualColor, " >>>>>", file=sys.stderr)
-                        powerRightMotor= 13
-                    else:
-                        print(self._actualColor, " <<<<<", file=sys.stderr)
-                        powerLeftMotor= 13
-                else:
-                    wasBlack=False
-                    print(self._actualColor, " =====", file=sys.stderr)
-                    powerLeftMotor=20
-                    powerRightMotor=20
-                    
-            self.stopMotors()
-        else:
-            print("Fuck.", file=sys.stderr)
-        print("The end.", file=sys.stderr)
+    def setIsWallAhead(self):
+        while(not(self._stopThread)):
+            self._isWallAhead = self._ultrasonicSensor.distance_centimeters<10
+
     
 
     '''
@@ -270,35 +240,28 @@ class RobotTank:
 
 
 def main():
-    pass
-    # tank = RobotTank(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4, INPUT_3, (0,0)) #to decoment
-    #tank.bothMotorsRotation(50,-30,1)
+    twin = RobotTank(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4, INPUT_2, 0)
 
-    # thread must be run at first to start checking the ultra sonique sensor distance
-    #t2 = Thread(target=tank.ultrasonicDetect, args=[])
-    #t2.start()
-    
-    # thread which runs a common method
-    #t1 = Thread(target=tank.runForever, args=[50,50])
-    #t1.start()
+    twin.scanColor()
 
     
-    
-    #temp = tank._actualColor
-    #oldTemp = temp
-    #while(True):
-    #    oldTemp=temp
-    #    temp=tank._actualColor
-    #    if(temp!=oldTemp):
-    #        print(temp, file=sys.stderr)
-    #tank.findLine('l')
-    
-    #tank.findLineDumb()
-    #tank.runStraigthLine()
-    # while(True): # to decomment
-    #     print(tank._gyroSensor.angle, file=sys.stderr)
-    #     time.sleep(5)
-    # print("End of the fucking program !", file=sys.stderr)
+    """ i=0
+    x=-1
+    while(i<100):
+        x = random.randrange(5)
+        if(x==0 or x==1):
+            twin.moveForwardOneSquare()
+        elif (x==2):
+            twin.turnLeft()
+        elif (x==3):
+            twin.turnRight()
+        else:
+            twin.turn180()
+        i+=1
+        print(i, file=sys.stderr) """
+    twin._stopThread = True
+
+    print("End of the fucking program !", file=sys.stderr)
             
 
 
