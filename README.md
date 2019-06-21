@@ -1,33 +1,17 @@
-# idefix
+# Projet Transversal Innovant
 
-## Tuto extension ev3dev pour Visual Studio Code
-https://github.com/ev3dev/vscode-ev3dev-browser
+## Objectifs du projet
+Ce projet utilise des robots Lego Mindstorm pour un résoudre un problème. Un labyrinthe formé de planches de bois sert d'environnement aux robots. Le jeu est composé de deux phases. La première est une phase d'exploration dans laquelle les robots se déplacent librement pour prendre connaissance de la topologie du labyrinthe. La deuxième phase est la phase de jeu à proprement parler. Les robots doivent atteindre une position spécifiée mais leurs déplacements sont limités. Ils ne peuvent s'arrêter uniquement lorsqu'un mur est rencontré. Ils peuvent donc mettre en place de la coopération en se servant des autres robots comme murs.
 
-## Tuto pour initialiser un répertoire Python+Ev3
-https://github.com/ev3dev/vscode-hello-python
+## Robots
+Les robots possèdent chacun deux moteurs, un capteur de distance, un capteur de couleur et un compas. L'association de tous ces éléments permet aux robots de se déplacer dans le labyrinthe. La labyrinthe est découpé en cases qui sont délimitées par des lignes de couleurs. 
 
-Correction : vous pouvez ici directement clone le projet.
-
-## Problèmes d'import des libs sous Python
-Il est possible de run du code sans installer les libs sur sa machine. Le ev3 
-tool les comprends. Je vous conseille de les installer tout de même pour pouvoir 
-faire de la complétion de code.
+## Organisation du groupe
+Organisation en SCRUM.
 ```
-pip3 install python-ev3dev2
+SCRUM Master : Cyril Reymond
+SCRUM Tracker : Bao Anh Nguyen
+Responsables Déplacements Robots : Robin Donnay, Cyril Reymond
+Responsables Exploration : Bao Anh Nguyen, Ali Zahidi, Ndacyayisenga Gafiligi
+Responsables Phase Jeu : Julien Alamelle, Daniel Bensoussan-Bohm
 ```
-## Code demo
-https://github.com/ev3dev/ev3dev-lang-python-demo
-
-## Documentation library
-https://python-ev3dev.readthedocs.io/en/ev3dev-stretch/
-
-## Imports classique pour chaque fichier Python
-```python
-from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_B, SpeedPercent, MoveTank
-from ev3dev2.sensor import INPUT_1
-from ev3dev2.sensor.lego import TouchSensor
-from ev3dev2.led import Leds
-```
-
-## Threading en Python
-https://docs.python.org/3/library/threading.html

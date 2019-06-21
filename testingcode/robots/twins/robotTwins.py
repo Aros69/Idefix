@@ -33,19 +33,17 @@ class RobotTwin:
     _stopThread = False
 
     # METHODS
-    def __init__(self, leftMotor, rightMotor, colorSensor, ultrasonicSensor, gyroSensor):
+    def __init__(self, leftMotor, rightMotor, colorSensor, ultrasonicSensor, compassSensor):
         self._motors = MoveTank(leftMotor, rightMotor)
         self._leftMotor = LargeMotor(leftMotor)
         self._rightMotor = LargeMotor(rightMotor) 
         self._colorSensor = ColorSensor(colorSensor)
         self._ultrasonicSensor = UltrasonicSensor(ultrasonicSensor)
-        self._compassSensor = Sensor(INPUT_2)
+        self._compassSensor = Sensor(compassSensor)
         sleep(1)
         self._baseAngle = self._compassSensor.value()
         self._actualAngle = self._baseAngle
-        #self._threadCompass = Thread(target=self.setActualAngle, args=[])
         self._threadSonic = Thread(target=self.setIsWallAhead, args=[])
-        #self._threadCompass.start()
         self._threadSonic.start()
         sleep(1)
 
@@ -158,7 +156,7 @@ class RobotTwin:
             #print(self._ultrasonicSensor.distance_centimeters, file=sys.stderr)
 
 def main():
-    twin = RobotTwin(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4, INPUT_3)
+    twin = RobotTwin(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4, INPUT_2)
 
     i=0
     x=-1
