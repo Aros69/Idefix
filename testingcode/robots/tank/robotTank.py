@@ -89,7 +89,7 @@ class RobotTank:
         time.sleep(1)
 
     def stopMotors(self):
-        self._motors.off
+        self._motors.off()
 
     def color(self):
         if (self._colorSensor.color == self._colorSensor.COLOR_BLACK):
@@ -251,7 +251,7 @@ class RobotTank:
 
 
 def main():
-    twin = RobotTank(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4, INPUT_2, (0, 0))
+    twin = RobotTank(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4, INPUT_2, (0, 0), None)
 
     twin.scanColor()
 
@@ -269,8 +269,8 @@ def main():
             twin.turn180()
         i+=1
         print(i, file=sys.stderr) """
-    twin._stopThread = True
 
+    twin._stopThread = True
     print("End of the fucking program !", file=sys.stderr)
 
 

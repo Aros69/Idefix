@@ -24,11 +24,11 @@ class RobotTwin:
     _baseAngle = 0
     _actualAngle = 0
     _isWallAhead = True
-    _threadCompass = None
     _threadSonic = None
-    _actualColor = 'q'
-    _rightColor = 'q'
-    _leftColor = 'q'
+    _threadColor = None
+    _actualColor = 0
+    _rightColor = 0
+    _leftColor = 0
     _stopDetectColor = False
     _stopThread = False
 
@@ -43,13 +43,11 @@ class RobotTwin:
         sleep(1)
         self._baseAngle = self._compassSensor.value()
         self._actualAngle = self._baseAngle
-        #self._threadCompass = Thread(target=self.setActualAngle, args=[])
         self._threadSonic = Thread(target=self.setIsWallAhead, args=[])
-        #self._threadCompass.start()
+        self._threadColor = Thread(target=self.setColor, args=[])
         self._threadSonic.start()
         sleep(1)
 
-        
     def moveForwardOneSquare(self):
         if(not(self._isWallAhead)):
             self.bothMotorsRotation(50,50, 1.8)
@@ -115,22 +113,55 @@ class RobotTwin:
     def leftMotorNegativeRotation(self, puissance, rotation):
         self._leftMotor.on_for_rotations(SpeedPercent(-puissance), rotation)
         time.sleep(1)
-    
-    def stopLeftMotor(self):
-        self._leftMotor.off
-    
-    def stopRightMotor(self):
-        self._rightMotor.off
 
     def stopMotors(self):
-        self._motors.off
+        self._motors.off()
     
     def getAngle(self):
         self._actualAngle = self._compassSensor.value()
         return self._compassSensor.value()
 
-    def detectColor(self):
-        raise NotImplementedError
+    def color(self):
+        if (self._colorSensor.color == self._colorSensor.COLOR_BLACK):
+            self._actualColor = self._colorSensor.COLOR_BLACK
+            # print("couleur (noire) = ", self._actualColor, file=sys.stderr)
+        elif (self._colorSensor.color == self._colorSensor.COLOR_RED):
+            self._actualColor = self._colorSensor.COLOR_RED
+            # print("couleur (rouge) = ", self._actualColor, file=sys.stderr)
+        elif (self._colorSensor.color == self._colorSensor.COLOR_WHITE):
+            self._actualColor = self._colorSensor.COLOR_WHITE
+            # print("couleur (blanc) = ", self._actualColor, file=sys.stderr)
+        else:
+            self._actualColor = self._colorSensor.COLOR_BROWN
+            # print("couleur (marron) = ", self._actualColor, file=sys.stderr)
+
+    def scanColor(self):
+        if (self._actualColor != self._colorSensor.COLOR_BROWN):
+            # balayage jusqu'a marron
+            while (self._actualColor != self._colorSensor.COLOR_BROWN):
+                # Tourne à gauche (normalement)
+                self.runForever(-6, 6)
+                # self.bothMotorsRotation(12, -12, -0.05)
+            self.stopMotors()
+            print("couleur = ", self._actualColor, file=sys.stderr)
+        while (self._actualColor == self._colorSensor.COLOR_BROWN):
+            # Tourne à droite (normalement)
+            self.runForever(6, -6)
+            # self.bothMotorsRotation(12, -12, 0.05)
+        self.stopMotors()
+        self._leftColor = self._actualColor
+        print("couleur = ", self._actualColor, file=sys.stderr)
+        while (self._actualColor == self._leftColor or self._actualColor == self._colorSensor.COLOR_BROWN):
+            # Tourne à droite (normalement)
+            self.runForever(6, -6)
+            # self.bothMotorsRotation(12, -12, 0.05)
+        self.stopMotors()
+        self._rightColor = self._actualColor
+        print("couleur = ", self._actualColor, file=sys.stderr)
+        while (self._actualColor != self._leftColor):
+            self.runForever(-6, 6)
+        self.stopMotors()
+        # self.bothMotorsRotation(12, -12, -0.05)
 
     # Ultra sonique sensor detect distance from object
     def ultrasonicDetect(self):
@@ -157,9 +188,16 @@ class RobotTwin:
             self._isWallAhead = self._ultrasonicSensor.distance_centimeters<10
             #print(self._ultrasonicSensor.distance_centimeters, file=sys.stderr)
 
+    def setColor(self):
+        while (not (self._stopThread)):
+            self.color()
+
 def main():
     twin = RobotTwin(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4, INPUT_3)
 
+    twin.scanColor()
+
+    '''
     i=0
     x=-1
     while(i<100):
@@ -173,43 +211,9 @@ def main():
         else:
             twin.turn180()
         i+=1
-        print(i, file=sys.stderr)
+        print(i, file=sys.stderr) '''
     twin._stopThread = True
-
-    #twin.turnLeft()
-    #twin.moveForwardOneSquare()
-    #twin.turnRight()
-    #twin.turn180()
-    #twin.moveForwardOneSquare()
-
-    #print(x.mode, file=sys.stderr)
-    #print(x.value(), file=sys.stderr)
-
-    #twin.turnRight()
-    #print(x.value(), file=sys.stderr)
-    #x.mode = b"BEGIN-CAL"
     
-    #print(ev3dev_sysinfo, file=sys.stderr)
-
-    #twin.turnLeft()
-    #twin.turnRight()
-    #twin.turn180()
-    #twin.turn180()
-
-    # thread must be run at first to start checking the ultra sonique sensor distance
-    # t2 = Thread(target=twin.ultrasonicDetect, args=[])
-    # t2.start()
-    
-    # # thread which runs a common method
-    # t1 = Thread(target=twin.leftMotorPositiveRotation, args=[50,1.08])
-    # t1.start()
-
-    # t3 = Thread(target=twin.rightMotorNegativeRotation, args=[50,1.08])
-    # t3.start()
-
-    #x.command = 'BEGIN-CAL'
-    #twin.turn1080()
-    #x.command = 'END-CAL'
 
 if __name__ == '__main__':
     main()
