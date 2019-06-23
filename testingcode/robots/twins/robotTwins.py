@@ -213,7 +213,7 @@ def main():
         i+=1
         print(i, file=sys.stderr) '''
     twin._stopThread = True
-    
+
 
 if __name__ == '__main__':
     main()
