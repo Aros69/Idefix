@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 import networkx as nx
 from networkx.drawing import nx_agraph
+from networkx.drawing import *
+import pydot
 import re
 import matplotlib.pyplot as plt
 import sys
 sys.path.insert(0, "D:\\Data\\Travail\\Universite\\master\\idefix")
+# sys.path.insert(0, "/mnt/d/data/Travail/Universite/master/idefix")
 
 from testingcode.exploration import robot
 from enum import Enum
@@ -113,15 +116,25 @@ class Labyrinthe:
     def init2DGraph(self):
         g = nx.Graph()
 
-        for i in range (self.offset_x, self.offset_x + self.dim_x):
-            for j in range (self.offset_y, self.offset_y + self.dim_y):
+        # for i in range (self.offset_x, self.offset_x + self.dim_x):
+        #     for j in range (self.offset_y, self.offset_y + self.dim_y):
 
-                if i > self.offset_x and i < (self.offset_x + self.dim_x-1):
-                    g.add_edge( (i,j),(i-1,j) )
-                    g.add_edge( (i,j),(i+1,j) )
-                if j > self.offset_y and j < (self.offset_y + self.dim_y-1):
-                    g.add_edge( (i,j),(i,j-1) )
-                    g.add_edge( (i,j),(i,j+1) )
+        #         if i > self.offset_x and i < (self.offset_x + self.dim_x-1):
+        #             g.add_edge( (i,j),(i-1,j) )
+        #             g.add_edge( (i,j),(i+1,j) )
+        #         if j > self.offset_y and j < (self.offset_y + self.dim_y-1):
+        #             g.add_edge( (i,j),(i,j-1) )
+        #             g.add_edge( (i,j),(i,j+1) )
+        
+        # fill line edges
+        for i in range (self.offset_x, self.offset_x + self.dim_x):
+            for j in range(self.offset_y, self.offset_y + self.dim_y -1):
+                g.add_edge( (i,j), (i,j+1))
+        
+        # fill column edges
+        for i in range (self.offset_x, self.offset_x + self.dim_x - 1):
+            for j in range(self.offset_y, self.offset_y + self.dim_y):
+                g.add_edge( (i,j), (i+1,j))
 
         self.graph = g
         return g
@@ -136,7 +149,7 @@ class Labyrinthe:
         """
     
         Gstr = nx_agraph.read_dot(path)
-        Gpair = nx.DiGraph()
+        Gpair = nx.Graph()
 
         alledges = list(Gstr.edges())
         expr = '(\d+)'
@@ -154,6 +167,7 @@ class Labyrinthe:
 
             Gpair.add_edge((i1, j1), (i2, j2))
 
+        self.graph = Gpair
         return Gpair
 
     def direction(self, nodeDepart, nodeDestination):
@@ -218,8 +232,8 @@ def main():
     # labyrinthe.display_Graph()
         
 
-    robotPos = (7,2)
-    laby = Labyrinthe(5, 0, 4,4,robotPos)
+    robotPos = (0,0)
+    laby = Labyrinthe(0, 0, 2,2,robotPos)
     laby.init2DGraph()
 
     # TODO il ne faut pas géré le cas départ ou le robot est sur le noeud avec un remove
@@ -234,12 +248,12 @@ def main():
     
     edge_deleted = []
 
-
+    print (laby.graph)
     while len(to_visit) > 0 and not path_block:
-        # print ("to_visit = ", to_visit)
+        print ("to_visit = ", to_visit)
         path = laby.nearest_node(to_visit)
         
-        # print("path = ", path)
+        print("path = ", path)
 
         # if there are a path (we also consider case where robot is already on correct case for generic)
         if len(path) > 0:

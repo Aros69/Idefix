@@ -71,6 +71,10 @@ class Maze:
     lab = []
 
 
-class Pos:
+class Pos(object):
     loc: int = 0
     move = []
+
+    def __init__(self, loc, move):
+        self.loc = loc
+        self.move = move
