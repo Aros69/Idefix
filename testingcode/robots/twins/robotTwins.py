@@ -9,8 +9,8 @@ import os, sys, time, random
 from threading import Timer, Thread, Event
 from time import sleep
 
-sys.path.append(os.path.realpath('./'))
-from testingcode.chronometre import Chrono
+sys.path.append('../../')
+from chronometre import Chrono
 
 class RobotTwin:
     # DATA
@@ -100,56 +100,47 @@ class RobotTwin:
             leftPower = 25
             rightPower = 25
             inCorrection = False
+            compenseMarron = False
             c = Chrono()
             c.start()
-            while(c.getTime() < 2.15) :# timer < nbSeconde pour atteindre une case
-                '''if(not(inCorrection)):
+            while(c.getTime() < 2.4) :# timer < nbSeconde pour atteindre une case
+                if(not(inCorrection)):
                     if(self._actualColor==self._rightColor):
-                        leftPower = 22.5
+                        leftPower = 22
+                        rightPower = 27
                         inCorrection = True
                         print("Compense vers gauche", file=sys.stderr)
                     elif(self._actualColor==self._colorSensor.COLOR_BROWN):
-                        rightPower = 22.5
+                        leftPower = 27
+                        rightPower = 22
                         inCorrection = True
+                        compenseMarron = True
                         print("Compense vers droite", file=sys.stderr)
                 else:
                     if(self._actualColor==self._leftColor):
                         rightPower = 25
                         leftPower = 25
                         inCorrection = False
-                        print("Pas de compensation", file=sys.stderr)'''
-                if(self._actualColor == self._leftColor):
-                    print("I am following the left color.", file=sys.stderr)
-                    leftPower = 25
-                    rightPower = 25
-                else:
-                    if(self._actualColor == self._rightColor):
-                        while(self._actualColor == self._rightColor):
-                            # turn litle left
-                            print("I found the right color and so correcting to left.", file=sys.stderr)
-                            self._leftMotorPower = 27
-                            self._rightMotorPower = 23                
-                        leftPower = 25
-                        rightPower = 25
-                    else:
-                        while(self._actualColor == self._colorSensor.COLOR_BROWN):
-                            # turn right 
-                            print("I found BROWN and so correcting to right.", file=sys.stderr)
-                            self._leftMotorPower = 23
-                            self._rightMotorPower = 27
-                        leftPower = 25
-                        rightPower = 25
+                        compenseMarron = False
+                        print("Pas de compensation", file=sys.stderr)
+                    elif(compenseMarron and self._actualColor==self._rightColor):
+                        leftPower = 22
+                        rightPower = 27
+                        inCorrection = True
+                        compenseMarron = False
+                        print("Erreur Compensation, tentative de correction", file=sys.stderr)
                 self.runForever(leftPower, rightPower)
+            self.stopMotors()
+            sleep(1)
             self.orientationCorrection()
         sleep(1)
-        
 
     def turnLeft(self):
         #self.bothMotorsRotation(50, -40, -0.6)
         angleObjectif = (self._baseAngle+90)%360
         self._cardinalPoint=(self._cardinalPoint-1)%4
         self.setColorWithCardinalPoint()
-        self.bothMotorsRotation(25, -20, -90/146) # 146 = facteur de rotation d'après une rotation de moteur
+        self.bothMotorsRotation(25, -20, -85/146) # 146 = facteur de rotation d'après une rotation de moteur
         time.sleep(1)
         self._actualAngle = self._compassSensor.value()
         self._baseAngle = angleObjectif
@@ -160,7 +151,7 @@ class RobotTwin:
         angleObjectif = (self._baseAngle-90)%360
         self._cardinalPoint=(self._cardinalPoint+1)%4
         self.setColorWithCardinalPoint()
-        self.bothMotorsRotation(25, -20, 90/146) # 146 = facteur de rotation d'après une rotation de moteur
+        self.bothMotorsRotation(25, -20, 85/146) # 146 = facteur de rotation d'après une rotation de moteur
         time.sleep(1)
         self._actualAngle = self._compassSensor.value()
         self._baseAngle = angleObjectif
@@ -185,17 +176,17 @@ class RobotTwin:
         if(angleDif<-1 or angleDif>1 or self._actualColor != self._leftColor):
             # On enregistre la dernière action pour la continuer si on a un doute
             lastAction = -1
-            '''while(self._compassSensor.value()<self._baseAngle-1 or self._compassSensor.value()>self._baseAngle+1 
-                or  self._actualColor != self._leftColor):'''
-            if(self._compassSensor.value()>self._baseAngle 
-                and self._compassSensor.value()<self._baseAngle+180%360 ):
-                lastAction = 1
-            elif((self._compassSensor.value()<self._baseAngle 
-                and self._compassSensor.value()>self._baseAngle-180%360) 
-                or self._actualColor == self._rightColor) :
-                lastAction = 2
-            else:    
-                print("Je sais pas quoi faire", file=sys.stderr)
+            i = 2
+            while(lastAction==-1 and i<60):
+                if(self._compassSensor.value()==(self._baseAngle+i)%360): 
+                    lastAction = 1
+                i+=1
+            if(lastAction==-1):
+                i = 2
+                while(lastAction==-1 and i<60):
+                    if(self._compassSensor.value()==(self._baseAngle-i)%360): 
+                        lastAction = 2
+                    i+=1
             while self._actualColor != self._leftColor:
                 if lastAction==1 :
                     self.bothMotorsRotation(5, -4, 0.05)
@@ -203,13 +194,13 @@ class RobotTwin:
                     self.bothMotorsRotation(5, -4, -0.05)
                 else:    
                     print("Je sais pas quoi faire", file=sys.stderr)
+                    print("Angle actuel = ", self._compassSensor.value(), file=sys.stderr)
+                    print("Angle de base = ", self._baseAngle, file=sys.stderr)
                 sleep(0.5)
-                #print("Couleur actuel = ", self._actualColor, "Couleur gauche = ", self._leftColor, file=sys.stderr)
-                #print("Angle actuel = ", self._compassSensor.value(), "Angle attendu = ", self._baseAngle, file=sys.stderr)
-            if lastAction==1 :
+            '''if lastAction==1 :
                 self.bothMotorsRotation(5, -4, 2/146)
             elif lastAction==2:
-                self.bothMotorsRotation(5, -4, -2/146)
+                self.bothMotorsRotation(5, -4, -2/146)'''
         #print("Couleur actuel = ", self._actualColor, "Couleur gauche = ", self._leftColor, file=sys.stderr)
         #print("Angle actuel = ", self._compassSensor.value(), "Angle attendu = ", self._baseAngle, file=sys.stderr)
 
@@ -286,20 +277,22 @@ class RobotTwin:
 def main():
     twin = RobotTwin(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4, INPUT_2)
 
-    #twin.moveForwardOneSquare2()
 
     i=0
     x=-1
     while(i<100):
-        x = random.randrange(6)
-        if(x <= 2):
-            twin.moveForwardOneSquare2()
-        elif (x==3):
-            twin.turnLeft()
-        elif (x==4):
-            twin.turnRight()
-        else:
+        x = random.randrange(7)
+        if(x == 2):
             twin.turn180()
+            twin.moveForwardOneSquare2()
+        elif (x==0):
+            twin.turnLeft()
+            twin.moveForwardOneSquare2()
+        elif (x==1):
+            twin.turnRight()
+            twin.moveForwardOneSquare2()
+        else:
+            twin.moveForwardOneSquare2()
         i+=1
         print(i, file=sys.stderr)
     
