@@ -111,16 +111,16 @@ class Labyrinthe:
 
     def init2DGraph(self):
         g = nx.Graph()
-
+        
+        # fill line edges
         for i in range (self.offset_x, self.offset_x + self.dim_x):
-            for j in range (self.offset_y, self.offset_y + self.dim_y):
-
-                if i > self.offset_x and i < (self.offset_x + self.dim_x-1):
-                    g.add_edge( (i,j),(i-1,j) )
-                    g.add_edge( (i,j),(i+1,j) )
-                if j > self.offset_y and j < (self.offset_y + self.dim_y-1):
-                    g.add_edge( (i,j),(i,j-1) )
-                    g.add_edge( (i,j),(i,j+1) )
+            for j in range(self.offset_y, self.offset_y + self.dim_y -1):
+                g.add_edge( (i,j), (i,j+1))
+        
+        # fill column edges
+        for i in range (self.offset_x, self.offset_x + self.dim_x - 1):
+            for j in range(self.offset_y, self.offset_y + self.dim_y):
+                g.add_edge( (i,j), (i+1,j))
 
         self.graph = g
         return g
@@ -135,7 +135,7 @@ class Labyrinthe:
         """
     
         Gstr = nx_agraph.read_dot(path)
-        Gpair = nx.DiGraph()
+        Gpair = nx.Graph()
 
         alledges = list(Gstr.edges())
         expr = '(\d+)'
@@ -153,6 +153,7 @@ class Labyrinthe:
 
             Gpair.add_edge((i1, j1), (i2, j2))
 
+        self.graph = Gpair
         return Gpair
 
     def direction(self, nodeDepart, nodeDestination):
@@ -217,8 +218,8 @@ def main():
     # labyrinthe.display_Graph()
         
 
-    robotPos = (7,2)
-    laby = Labyrinthe(5, 0, 4,4,robotPos)
+    robotPos = (0,0)
+    laby = Labyrinthe(0, 0, 2,2,robotPos)
     laby.init2DGraph()
 
     # TODO il ne faut pas géré le cas départ ou le robot est sur le noeud avec un remove
@@ -233,7 +234,7 @@ def main():
     
     edge_deleted = []
 
-
+    print (laby.graph)
     while len(to_visit) > 0 and not path_block:
         # print ("to_visit = ", to_visit)
         path = laby.nearest_node(to_visit)
@@ -290,10 +291,4 @@ def main():
     plt.show()
 
 if __name__ == '__main__':
-    #main()
-    laby = Labyrinthe(0,0,1,1,(0,0))
-    laby.graph = laby.dot_to_nxGraph('inputLaby.dot')
-    pos = dict( (n, n) for n in laby.graph.nodes() )
-    nx.draw_networkx(laby.graph, pos = pos) 
-    plt.axis('off')
-    plt.show()
+    main()

@@ -1,5 +1,5 @@
-from maze import Maze
-from maze import Pos
+# from maze import Maze
+# from maze import Pos
 
 
 def solve_conf(lab, pos, end: int):
@@ -18,28 +18,28 @@ def solve_conf(lab, pos, end: int):
     return
 
 
-def main():
-    lab = Maze()
-    init = Pos()
-    try:
-        x = int(input("pos X robot C : "))
-        y = int(input("pos Y robot C : "))
-        init.loc = 8 * x + y
-        x = int(input("pos X robot B : "))
-        y = int(input("pos Y robot B : "))
-        init.loc = 64*init.loc + 8 * x + y
-        x = int(input("pos X robot A : "))
-        y = int(input("pos Y robot A : "))
-        init.loc = 64*init.loc + 8 * x + y
-        x: int = int(input("pos X arrive : "))
-        y: int = int(input("pos Y arrive : "))
-        target = 8 * x + y
-    except:
-        print("give integer please")
-        return
-    res = solve_conf(lab, init, target)
-    print(res)
-    return
+# def main():
+#     lab = Maze()
+#     init = Pos()
+#     try:
+#         x = int(input("pos X robot C : "))
+#         y = int(input("pos Y robot C : "))
+#         init.loc = 8 * x + y
+#         x = int(input("pos X robot B : "))
+#         y = int(input("pos Y robot B : "))
+#         init.loc = 64*init.loc + 8 * x + y
+#         x = int(input("pos X robot A : "))
+#         y = int(input("pos Y robot A : "))
+#         init.loc = 64*init.loc + 8 * x + y
+#         x: int = int(input("pos X arrive : "))
+#         y: int = int(input("pos Y arrive : "))
+#         target = 8 * x + y
+#     except:
+#         print("give integer please")
+#         return
+#     res = solve_conf(lab, init, target)
+#     print(res)
+#     return
 
 
 def test():
