@@ -5,13 +5,9 @@ from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_D, OUTPUT_C, OUTPUT_B,Spe
 from ev3dev2.sensor import Sensor, INPUT_1, INPUT_2, INPUT_3, INPUT_4
 from ev3dev2.sensor.lego import TouchSensor, ColorSensor, UltrasonicSensor, GyroSensor
 from ev3dev2.led import Leds
-import os
-import time
-import sys
-import random
+import os, sys, time, random
 from threading import Timer, Thread, Event
 from time import sleep
-
 
 class RobotTwin:
     # DATA
