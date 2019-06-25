@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
 import networkx as nx
 from networkx.drawing import nx_agraph
-from networkx.drawing import *
-import pydot
-import re
+import re, os, sys
 import matplotlib.pyplot as plt
-import sys
-sys.path.insert(0, "D:\\Data\\Travail\\Universite\\master\\idefix")
-# sys.path.insert(0, "/mnt/d/data/Travail/Universite/master/idefix")
 
+sys.path.append(os.path.realpath('./'))
 from testingcode.exploration import robot
 from enum import Enum
 from testingcode.exploration import directionEnum
@@ -115,16 +111,6 @@ class Labyrinthe:
 
     def init2DGraph(self):
         g = nx.Graph()
-
-        # for i in range (self.offset_x, self.offset_x + self.dim_x):
-        #     for j in range (self.offset_y, self.offset_y + self.dim_y):
-
-        #         if i > self.offset_x and i < (self.offset_x + self.dim_x-1):
-        #             g.add_edge( (i,j),(i-1,j) )
-        #             g.add_edge( (i,j),(i+1,j) )
-        #         if j > self.offset_y and j < (self.offset_y + self.dim_y-1):
-        #             g.add_edge( (i,j),(i,j-1) )
-        #             g.add_edge( (i,j),(i,j+1) )
         
         # fill line edges
         for i in range (self.offset_x, self.offset_x + self.dim_x):
@@ -250,10 +236,10 @@ def main():
 
     print (laby.graph)
     while len(to_visit) > 0 and not path_block:
-        print ("to_visit = ", to_visit)
+        # print ("to_visit = ", to_visit)
         path = laby.nearest_node(to_visit)
         
-        print("path = ", path)
+        # print("path = ", path)
 
         # if there are a path (we also consider case where robot is already on correct case for generic)
         if len(path) > 0:
