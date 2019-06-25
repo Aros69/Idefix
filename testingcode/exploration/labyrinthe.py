@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 import networkx as nx
 from networkx.drawing import nx_agraph
-import re
+import re, os, sys
 import matplotlib.pyplot as plt
-import sys
-sys.path.insert(0, "D:\\Data\\Travail\\Universite\\master\\idefix")
 
+sys.path.append(os.path.realpath('./'))
 from testingcode.exploration import robot
 from enum import Enum
 from testingcode.exploration import directionEnum
@@ -291,4 +290,10 @@ def main():
     plt.show()
 
 if __name__ == '__main__':
-    main()
+    #main()
+    laby = Labyrinthe(0,0,1,1,(0,0))
+    laby.graph = laby.dot_to_nxGraph('inputLaby.dot')
+    pos = dict( (n, n) for n in laby.graph.nodes() )
+    nx.draw_networkx(laby.graph, pos = pos) 
+    plt.axis('off')
+    plt.show()

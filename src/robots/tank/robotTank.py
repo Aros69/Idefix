@@ -11,8 +11,9 @@ from threading import Timer, Thread, Event
 
 # sys.path.insert(0, "/your/path/to/idefix") # if you want to execute main in this file
 # sys.path.insert(0, "/home/baoanh/Travail/Master1/idefix/")
-#sys.path.insert(0, "/home/robin/Master/IDEFIX/idefix/")
-#from testingcode.exploration.labyrinthe import Labyrinthe
+# sys.path.insert(0, "/home/robin/Master/IDEFIX/idefix/")
+sys.path.append(os.path.realpath('./'))
+from testingcode.exploration.labyrinthe import Labyrinthe
 
 class RobotTank:
     # DATA
