@@ -34,7 +34,7 @@ import copy
 
 class Server:
     def __init__():
-        self.robotTank = RobotTank()
+        self.robotTank =   RobotTank()
         self.robotTwins1 = RobotTwins()
         self.robotTwins2 = RobotTwins()
 
@@ -503,22 +503,33 @@ def main_bidon():
     # robotTankDirection = 0
     robotTankPos = (0,0)
     robotTwins1Pos = (3,0)
-    robotTwins2Pos = (6,0)
+    robotTwins2Pos = (4,0)
 
     listRobotPos = [robotTankPos, robotTwins1Pos, robotTwins2Pos]
     
     manager = Manager()
     robot_para = manager.dict()
     proc_list = []
+<<<<<<< HEAD
     largeur = 5
     longueur = 5
+=======
+<<<<<<< HEAD
+    
+    laby_size = (5,4)
+=======
+    largeur = 8
+    longueur = 8
+>>>>>>> 870032a8a1e1e85b1f54d48eeb4c35823f571797
     laby_size = (largeur,longueur)
+>>>>>>> fee545d0807e0a70b4211506b9691f903bd55fb0
 
 
     # the complete graph
     laby_complet = Labyrinthe(0,0,laby_size[0],laby_size[1], (0,0))
     laby_complet.init2DGraph()
     laby = laby_complet.graph
+<<<<<<< HEAD
     laby.remove_edge((3,3),(3,4))
     laby.remove_edge((4,3),(4,4))
     laby.remove_edge((2,1),(2,2))
@@ -543,6 +554,30 @@ def main_bidon():
     # # laby_1.init2DGraph()
     # # laby_2 = Labyrinthe(3,0, 3, 3, (3,0))
     # # laby_2.init2DGraph()
+=======
+    node_not_explored = laby_complet.not_visited_node()
+    print ("node to visited ", len(node_not_explored))
+    print (node_not_explored)
+    # Divide node to visit
+    # to_visit_r1 = node_not_explored[0:16]
+    # to_visit_r2 = node_not_explored[16:]
+    allnodesDiviseBy3 = int(len(node_not_explored)/3)
+    print(node_not_explored)
+    print("allnodesDiviseBy3")
+    print(allnodesDiviseBy3)
+    to_visit_r1 = node_not_explored[0:allnodesDiviseBy3]
+    to_visit_r2 = node_not_explored[allnodesDiviseBy3:2*allnodesDiviseBy3]
+    to_visit_r3 = node_not_explored[2*allnodesDiviseBy3:]
+    print(to_visit_r1)
+    print(to_visit_r2)
+    print(to_visit_r3)
+
+    # TODO To change
+    # laby_1 = Labyrinthe(0,0, 3, 3, (1,1))
+    # laby_1.init2DGraph()
+    # laby_2 = Labyrinthe(3,0, 3, 3, (3,0))
+    # laby_2.init2DGraph()
+>>>>>>> 870032a8a1e1e85b1f54d48eeb4c35823f571797
 
     
     # proc_list.append(Process(target=correct_labyrinth_bidon, args=(0, robot_para, robotTankPos, laby_complet, to_visit_r1)))
