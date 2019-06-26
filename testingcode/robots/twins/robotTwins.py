@@ -97,13 +97,12 @@ class RobotTwin:
     def moveForward(self, nbCase):
         if(not(self._isWallAhead)):
             # run forever with timer and modification of power
-            leftPower = 20
-            rightPower = 20
+            leftPower = 15
+            rightPower = 15
             inCorrection = False
-            compenseMarron = False
             c = Chrono()
             c.start()
-            while(c.getTime() < 2.99*nbCase) :# timer < nbSeconde pour atteindre une case
+            while(c.getTime() < 4.2*nbCase) :# timer < nbSeconde pour atteindre une case
                 if(not(inCorrection)):
                     if(self._actualColor==self._rightColor):
                         self.stopMotors()
@@ -114,7 +113,7 @@ class RobotTwin:
                         self.stopMotors()
                         c.pause()
                         self.colorCorrection()
-                        c.restart()                    
+                        c.restart()
                 self.runForever(leftPower, rightPower)
             self.stopMotors()
             sleep(1)
@@ -163,7 +162,7 @@ class RobotTwin:
 
     def colorCorrection(self):
         directionIsDefined = False
-        while self._actualColor != self._leftColor:
+        while self._actualColor < self._leftColor-1 or self._actualColor > self._leftColor+1 :
             if(directionIsDefined or self._actualColor == self._rightColor):
                 self.runForever(-2.5, 2)
                 directionIsDefined = True
@@ -179,16 +178,19 @@ class RobotTwin:
             lastAction = 1
             while distObjectif>=1 and self._actualColor != self._leftColor :
                 if lastAction==1 :
-                    self.bothMotorsRotation(5, -4, 0.05)
+                    self.runForever(2.5, -2)
+                    #self.bothMotorsRotation(5, -4, 0.05)
                 elif lastAction==2:
-                    self.bothMotorsRotation(5, -4, -0.05)
+                    self.runForever(-2.5, 2)
+                    #self.bothMotorsRotation(5, -4, -0.05)
                 newDist = 180 - abs(abs(self._baseAngle-self._compassSensor.value())-180)
-                sleep(1)
+                #sleep(1)
                 if(newDist>distObjectif):
                     lastAction = (lastAction%2)+1
-                    print("Direction dist = ", newDist, "Couleur = ", self.getStringColor(), file=sys.stderr)
+                    #print("Direction dist = ", newDist, "Couleur = ", self.getStringColor(), file=sys.stderr)
                 distObjectif = newDist
-                sleep(0.5)
+                #sleep(0.5)
+            self.stopMotors()
         #print("Couleur actuel = ", self._actualColor, "Couleur gauche = ", self._leftColor, file=sys.stderr)
         #print("Angle actuel = ", self._compassSensor.value(), "Angle attendu = ", self._baseAngle, file=sys.stderr)
 
@@ -285,11 +287,12 @@ class RobotTwin:
 def main():
     twin = RobotTwin(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4, INPUT_2)
 
+    #twin.moveForwardOneSquare2()
 
     i=0
     x=-1
     while(i<100):
-        x = random.randrange(7)
+        x = random.randrange(3)
         if(x == 2):
             twin.turn180()
             twin.moveForwardOneSquare2()
@@ -299,8 +302,8 @@ def main():
         elif (x==1):
             twin.turnRight()
             twin.moveForwardOneSquare2()
-        else:
-            twin.moveForwardOneSquare2()
+        '''else:
+            twin.moveForwardOneSquare2()'''
         i+=1
         print(i, file=sys.stderr)
     

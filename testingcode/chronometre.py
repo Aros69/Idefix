@@ -29,7 +29,7 @@ class Chrono:
 
     def stop(self):
         self._endTime = time.time()
-        res = self._endTime - self._startTime 
+        res = self._lapsTime + (self._endTime - self._startTime)
         return res
 
     def reset(self):
