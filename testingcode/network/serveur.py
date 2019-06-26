@@ -502,6 +502,8 @@ def main_bidon():
     robotTankPos = (0,0)
     robotTwins1Pos = (3,0)
     robotTwins2Pos = (6,0)
+
+    listRobotPos = [robotTankPos, robotTwins1Pos, robotTwins2Pos]
     
     manager = Manager()
     robot_para = manager.dict()
@@ -529,7 +531,7 @@ def main_bidon():
     # laby_2 = Labyrinthe(3,0, 3, 3, (3,0))
     # laby_2.init2DGraph()
 
-
+    
     proc_list.append(Process(target=correct_labyrinth_bidon, args=(0, robot_para, robotTankPos, laby_complet, to_visit_r1)))
     proc_list[0].start()
     proc_list.append(Process(target=correct_labyrinth_bidon, args=(1, robot_para, robotTwins1Pos, laby_complet, to_visit_r2)))
@@ -538,11 +540,11 @@ def main_bidon():
     proc_list[2].start()
 
     # exploration data of robot
-    not_visited = []
+    to_visit = []
     deleted_edge = []
     for i in range (0, 3):
         proc_list[i].join()
-        not_visited += robot_para['to_visit_' + str(i)]
+        to_visit += robot_para['to_visit_' + str(i)]
         deleted_edge += robot_para['deleted_edge_' + str(i)]
     
 
@@ -554,61 +556,77 @@ def main_bidon():
     # print (laby.nodes())
 
     #################### finish to complet laby ################
-    print ("not finished explored" , not_visited)
-
+    print ("not finished explored" , to_visit)
+    path_block = False
     # Path block should never be true
-    # while len(to_visit) > 0 and not path_block:
-    #     path = laby.nearest_node(to_visit)
+    
+    while len(to_visit) > 0 and not path_block:
+        print ("lists des positions des robots")
+        print(listRobotPos)
+
+        # find nearest node between 3 robots
+        laby_complet.set_robot_pos(listRobotPos[0])
+        path = None
+        current_robot = 0
+        for i in range(0, len(listRobotPos)):
+            laby_complet.set_robot_pos(listRobotPos[i])
+            new_path = laby_complet.nearest_node(to_visit)
+            
+            if (path == None or len(new_path) < len(path)) and len(new_path) > 0 :
+                path = new_path
+                current_robot = i
         
-
-    #     # if there are a path (we also consider case where robot is already on correct case for generic)
-    #     if len(path) > 0:
-    #         # simulation of block during go to node
-    #         if (len(path) > 1):
-    #             success = random.choice([True,False, True, True])
-    #             if not success:
-    #                 node_block = random.randint(1, len(path) - 1)
+        print ("le chemin a faire du robot : ", current_robot, " a faire :")
+        print (path)
 
 
-    #         else:
-    #             success = True
+        # if there are a path (we also consider case where robot is already on correct case for generic)
+        if path is not None and len(path) > 0:
+            # simulation of block during go to node
+            if (len(path) > 1):
+                success = random.choice([True,False, True, True])
+                if not success:
+                    node_block = random.randint(1, len(path) - 1)
+
+
+            else:
+                success = True
 
             
-    #         if (success):
-    #             robotPos = (path[-1])
+            if (success):
+                robotPos = (path[-1])
 
-    #             neighbNode = [(robotPos[0] + 1,robotPos[1]),
-    #                             (robotPos[0] - 1,robotPos[1]),
-    #                             (robotPos[0],robotPos[1] + 1),
-    #                             (robotPos[0],robotPos[1] - 1)
-    #                         ]
-    #             edges = []
-    #             for i in range (0, random.randrange(4)):
-    #                 node = random.choice(neighbNode)
-    #                 neighbNode.remove(node)
-    #                 node = (robotPos, node)
-    #                 edges.append(node)
+                neighbNode = [(robotPos[0] + 1,robotPos[1]),
+                                (robotPos[0] - 1,robotPos[1]),
+                                (robotPos[0],robotPos[1] + 1),
+                                (robotPos[0],robotPos[1] - 1)
+                            ]
+                edges = []
+                for i in range (0, random.randrange(4)):
+                    node = random.choice(neighbNode)
+                    neighbNode.remove(node)
+                    node = (robotPos, node)
+                    edges.append(node)
 
-    #             # print ('scan = ', edges)
-    #             edge_deleted += edges #TODO deleted edge, tempo function
-    #             laby.graph.remove_edges_from(edges)
-    #             to_visit.remove((path[-1]))
-    #             laby.set_robot_pos(path[-1])
+                # print ('scan = ', edges)
+                laby_complet.graph.remove_edges_from(edges)
+                to_visit.remove((path[-1]))
+                laby_complet.set_robot_pos(path[-1])
             
-    #         else:
-    #             robotPos = (path[node_block-1])
-    #             laby.set_robot_pos(path[node_block-1])
-    #             laby.graph.remove_edge(path[node_block-1],  path[node_block])
+            else:
+                robotPos = (path[node_block-1])
+                laby_complet.set_robot_pos(path[node_block-1])
+                laby_complet.graph.remove_edge(path[node_block-1],  path[node_block])
+            
+            # update current robot pos
+            listRobotPos[current_robot] = robotPos
                 
-    #     else:
-    #         # print ("PATH BLOCK")
-    #         path_block = True
+        else:
+            # print ("PATH BLOCK")
+            path_block = True
 
-    # laby_complet = Labyrinthe(0,0,laby_size[0],laby_size[1], (0,0))
-    # laby_complet.init2DGraph()
-    # laby = laby_complet.graph
-    # print (len(laby.edges()))
-
+    print ("fin operation liste des noeuds : ", to_visit)
+    laby = laby_complet.graph
     ################ SOLVER #####################
     robotTankPos = (0,0)
     robotTwins1Pos = (7,0)
@@ -637,13 +655,6 @@ def main_bidon():
     nx.draw_networkx(laby, pos = pos) 
     plt.axis('off')
     plt.show()
-
-
-    
-    # pos = dict( (n, n) for n in robot_para['laby_1'].nodes() )
-    # nx.draw_networkx(robot_para['laby_1'], pos = pos) 
-    # plt.axis('off')
-    # plt.show()
 
 
 

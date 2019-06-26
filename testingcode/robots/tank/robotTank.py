@@ -211,25 +211,15 @@ class RobotTank:
     :return: True if labyrinthe corrected else other robot have to help
     '''
 
-    def correct_labyrinth(self):
+    def correct_labyrinth(self, to_visit):
 
         # calculate all shortest path.
-        to_visit = self._labyrinthe.not_visited_node()
         path_block = False
 
         while len(to_visit) > 0 and not path_block:
             path = self._labyrinthe.nearest_node(to_visit)
 
-            # if there are a path
-            if len(path) > 0:
-                sucess = self.robot_follow(path)
-
-                if (sucess):
-                    edges = self.robot_scan()
-                    self._labyrinthe.graph.remove_edges_from(edges)
-                    to_visit.remove((path[-1]))
-            else:
-                path_block = True
+            path_block = self.try_to_go(path)
 
         # to_visit is now a list of not achieved path that other robot need to check
         return not path_block, to_visit
@@ -242,6 +232,26 @@ class RobotTank:
         # if destinations.
         # scan, update graph
         # remove node from not visited, then check for next shortest path.
+
+    def try_to_go(self, node):
+        success = False
+        # if there are a path
+        if len(path) > 0:
+            success = self.robot_follow(path)
+            while self._position != path[-1] and not success:
+                path = path[1:]
+                direction = self._labyrinthe.direction(self._position, path[0])
+            
+            
+
+            if (sucess):
+                edges = self.robot_scan()
+                self._labyrinthe.graph.remove_edges_from(edges)
+                to_visit.remove((path[-1]))
+        else:
+            success = True
+        
+        return success
 
     def get_position(self):
         return self._position
