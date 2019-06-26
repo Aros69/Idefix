@@ -126,7 +126,7 @@ class Server:
     def move_to(self, robot_p, direction):
         pos = robot_p.get_position()
         can_go = True
-        if direction == 0: # Direction.LEFT
+        if direction ==  Direction.LEFT:
             next_pos = (pos[0], pos[1] -1)
             while can_go:
                 if not self.labyrinth.has_edge((pos, next_pos)):
@@ -181,7 +181,7 @@ class Server:
     def move_to_bidon(self, robot_pos, direction):
         pos = robot_pos
         can_go = True
-        if direction == 0: #Direction.LEFT
+        if direction == 2: #Direction.LEFT
             next_pos = (pos[0], pos[1] -1)
             while can_go:
                 if not self.labyrinth.has_edge((pos, next_pos)):
@@ -205,7 +205,7 @@ class Server:
                 if can_go:
                     pos = next_pos
                     next_pos[0] -= 1
-        elif direction == 2: #Direction.RIGHT
+        elif direction == 0: #Direction.RIGHT
             next_pos = (pos[0], pos[1] + 1)
             while can_go:
                 if not self.labyrinth.has_edge((pos, next_pos)):
@@ -274,7 +274,7 @@ def main():
 def move_to_bidon(robot_pos, direction, laby, robot_list_pos):
     pos = robot_pos
     can_go = True
-    if direction == 0:
+    if direction == 2:
         next_pos = (pos[0], pos[1] -1)
         while can_go:
             if not laby.has_edge(pos, next_pos):
@@ -299,7 +299,7 @@ def move_to_bidon(robot_pos, direction, laby, robot_list_pos):
                 pos = next_pos
                 next_pos = (next_pos[0] - 1, next_pos[1])
 
-    elif direction == 2:
+    elif direction == 0:
         next_pos = (pos[0], pos[1] + 1)
         while can_go:
             if not laby.has_edge(pos, next_pos):
