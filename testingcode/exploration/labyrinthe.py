@@ -10,6 +10,8 @@ from enum import Enum
 from testingcode.exploration import directionEnum
 
 import random
+import copy
+
 class Color(Enum) :
     red = 0
     purple = 1
@@ -34,6 +36,8 @@ class Labyrinthe:
         self.dim_x = dim_x
         self.dim_y = dim_y
         self.robot_pos = robot_pos # a tuple (i,j)
+        self.graph = None
+        self.cut_graph = None
     
     def init_Labyrinthe(self):
         graph = nx.grid_2d_graph(self.dim_x,self.dim_y)
@@ -67,6 +71,7 @@ class Labyrinthe:
 
     '''
     return 1 case on 2 of a grid
+    Not dynamics, start case.
 
     :return: list of tupple
     '''
@@ -78,6 +83,19 @@ class Labyrinthe:
                 nodes.append((i,j))
         
         return nodes
+    
+    '''
+        graph must be define
+    '''
+    def init_cut_graph(self,x1,x2, y1, y2):
+        self.cut_graph = copy.deepcopy(self.graph)
+        
+        for i in range (self.offset_x, self.offset_x + self.dim_x):
+            for j in range (self.offset_y, self.offset_y + self.dim_y):
+                if not (i >= x1 and i <= x2 and j >= y1 and j <= y2):
+                    self.cut_graph.remove_node(i, j)
+
+        return self.cut_graph
     
     def nearest_node(self, target_nodes):
         short_path = []

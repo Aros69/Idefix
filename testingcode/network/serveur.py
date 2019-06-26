@@ -33,7 +33,7 @@ import copy
 
 class Server:
     def __init__():
-        self.robotTank = RobotTank()
+        self.robotTank =   RobotTank()
         self.robotTwins1 = RobotTwins()
         self.robotTwins2 = RobotTwins()
 
@@ -501,7 +501,7 @@ def main_bidon():
     ####### data robot #############
     robotTankPos = (0,0)
     robotTwins1Pos = (3,0)
-    robotTwins2Pos = (6,0)
+    robotTwins2Pos = (4,0)
 
     listRobotPos = [robotTankPos, robotTwins1Pos, robotTwins2Pos]
     
@@ -509,7 +509,7 @@ def main_bidon():
     robot_para = manager.dict()
     proc_list = []
     
-    laby_size = (8,8)
+    laby_size = (5,4)
 
 
     # the complete graph
@@ -518,6 +518,7 @@ def main_bidon():
     laby = laby_complet.graph
     node_not_explored = laby_complet.not_visited_node()
     print ("node to visited ", len(node_not_explored))
+    print (node_not_explored)
     # Divide node to visit
     # to_visit_r1 = node_not_explored[0:16]
     # to_visit_r2 = node_not_explored[16:]
