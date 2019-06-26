@@ -23,7 +23,8 @@ from RobotCommand.turn180 import RobotTurn180
 from RobotCommand.turnLeft import RobotTurnLeft
 from RobotCommand.turnRight import RobotTurnRight
 
-sys.path.insert(0, "D:\\Data\\Travail\\Universite\\master\\idefix")
+# sys.path.insert(0, "D:\\Data\\Travail\\Universite\\master\\idefix")
+sys.path.append("/home/etu/p1406781/Informatique/M1/IDEFIX/idefix")
 from testingcode.exploration.labyrinthe import Labyrinthe
 from testingcode.exploration.directionEnum import Direction
 import testingcode.solver.solve
@@ -508,8 +509,9 @@ def main_bidon():
     manager = Manager()
     robot_para = manager.dict()
     proc_list = []
-    
-    laby_size = (8,8)
+    largeur = 8
+    longueur = 8
+    laby_size = (largeur,longueur)
 
 
     # the complete graph
@@ -521,9 +523,16 @@ def main_bidon():
     # Divide node to visit
     # to_visit_r1 = node_not_explored[0:16]
     # to_visit_r2 = node_not_explored[16:]
-    to_visit_r1 = node_not_explored[0:10]
-    to_visit_r2 = node_not_explored[10:20]
-    to_visit_r3 = node_not_explored[20:]
+    allnodesDiviseBy3 = int(len(node_not_explored)/3)
+    print(node_not_explored)
+    print("allnodesDiviseBy3")
+    print(allnodesDiviseBy3)
+    to_visit_r1 = node_not_explored[0:allnodesDiviseBy3]
+    to_visit_r2 = node_not_explored[allnodesDiviseBy3:2*allnodesDiviseBy3]
+    to_visit_r3 = node_not_explored[2*allnodesDiviseBy3:]
+    print(to_visit_r1)
+    print(to_visit_r2)
+    print(to_visit_r3)
 
     # TODO To change
     # laby_1 = Labyrinthe(0,0, 3, 3, (1,1))
