@@ -72,28 +72,11 @@ class Labyrinthe:
     '''
     def not_visited_node(self):
         nodes = []
-        
-        # make j and robot position have same parity
-        if self.robot_pos[1]%2 == 0 and self.offset_y%2 != 0:
-            j = self.offset_y + 1
-        elif self.robot_pos[1]%2 != 0 and self.offset_y%2 == 0:
-            j = self.offset_y + 1
-        else:
-            j = self.offset_y
 
         for i in range (self.offset_x, self.offset_x + self.dim_x):
-            # if pair number
-            for j in range (j, self.offset_y + self.dim_y, 2):
+            for j in range (self.offset_y + (i%2), self.offset_y + self.dim_y, 2):
                 nodes.append((i,j))
-
-            j = j% (self.offset_y + self.dim_y-1)
-            j = self.offset_y + (j%2)
-
-        # TODO pas nécessaire si on ne change pas le graph
-        # clean node for not 2D graph
-        # for node in nodes:
-        #     if not self.graph.has_node(node):
-        #         nodes.remove(node)
+        
         return nodes
     
     def nearest_node(self, target_nodes):
