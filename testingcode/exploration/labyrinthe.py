@@ -10,6 +10,8 @@ from enum import Enum
 from testingcode.exploration import directionEnum
 
 import random
+import copy
+
 class Color(Enum) :
     red = 0
     purple = 1
@@ -34,6 +36,8 @@ class Labyrinthe:
         self.dim_x = dim_x
         self.dim_y = dim_y
         self.robot_pos = robot_pos # a tuple (i,j)
+        self.graph = None
+        self.cut_graph = None
     
     def init_Labyrinthe(self):
         graph = nx.grid_2d_graph(self.dim_x,self.dim_y)
@@ -67,34 +71,31 @@ class Labyrinthe:
 
     '''
     return 1 case on 2 of a grid
+    Not dynamics, start case.
 
     :return: list of tupple
     '''
     def not_visited_node(self):
         nodes = []
-        
-        # make j and robot position have same parity
-        if self.robot_pos[1]%2 == 0 and self.offset_y%2 != 0:
-            j = self.offset_y + 1
-        elif self.robot_pos[1]%2 != 0 and self.offset_y%2 == 0:
-            j = self.offset_y + 1
-        else:
-            j = self.offset_y
 
         for i in range (self.offset_x, self.offset_x + self.dim_x):
-            # if pair number
-            for j in range (j, self.offset_y + self.dim_y, 2):
+            for j in range (self.offset_y + (i%2), self.offset_y + self.dim_y, 2):
                 nodes.append((i,j))
-
-            j = j% (self.offset_y + self.dim_y-1)
-            j = self.offset_y + (j%2)
-
-        # TODO pas nécessaire si on ne change pas le graph
-        # clean node for not 2D graph
-        # for node in nodes:
-        #     if not self.graph.has_node(node):
-        #         nodes.remove(node)
+        
         return nodes
+    
+    '''
+        graph must be define
+    '''
+    def init_cut_graph(self,x1,x2, y1, y2):
+        self.cut_graph = copy.deepcopy(self.graph)
+        
+        for i in range (self.offset_x, self.offset_x + self.dim_x):
+            for j in range (self.offset_y, self.offset_y + self.dim_y):
+                if not (i >= x1 and i <= x2 and j >= y1 and j <= y2):
+                    self.cut_graph.remove_node(i, j)
+
+        return self.cut_graph
     
     def nearest_node(self, target_nodes):
         short_path = []
