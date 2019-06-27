@@ -41,7 +41,7 @@ class RobotExecuteCommands:
 
     def doCommand(self):
         print("sent Command List")
-        #TODO 
+        #TODO
         #self._robot.executeCommands(self._commands)
 
 class RobotMoveForward: 
@@ -55,7 +55,7 @@ class RobotMoveForward:
 
     def doCommand(self):
         print("sent move forward command")
-        self._robot.moveForwardOneSquare()
+        self._robot.moveForwardOneSquare2()
         print("finished executing command")
 
 class RobotTurn180: 
