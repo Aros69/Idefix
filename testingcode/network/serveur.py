@@ -189,7 +189,7 @@ class Server:
         path_block = False
 
         while len(to_visit) > 0 and not path_block:
-            path = laby.nearest_node(to_visit, True)
+            path = laby.nearest_node(to_visit, False)
             # if there are a path (we also consider case where robot is already on correct case for generic)
             if len(path) > 0:
             
@@ -313,6 +313,7 @@ class Server:
 
     # TODO not finish
     def run(self):
+        nbRobot = 2
         # threads data
         manager = Manager()
         robot_para = manager.dict()
@@ -327,9 +328,9 @@ class Server:
         # divide node to visite for each robot + cut labyrinthe
         node_not_explored = self.labyrinth.not_visited_node()
 
-        allnodesDiviseBy3 = int(len(node_not_explored)/3)
+        allnodesDiviseBy3 = int(len(node_not_explored)/nbRobot)
         to_visit_list = []
-        for i in range (0, 3):
+        for i in range (0, nbRobot):
             s = i*allnodesDiviseBy3
             if i+1 > 2:
                 e = len(node_not_explored)
@@ -338,20 +339,21 @@ class Server:
             to_visit_list.append(node_not_explored[s:e])
             laby_to_explore_list[i].init_cut_graph(node_not_explored[s],node_not_explored[e-1])
 
-
+        print(laby_to_explore_list[0].cut_graph.nodes)
+        print(laby_to_explore_list[1].cut_graph.nodes)
         proc_list.append(Process(target=self.correct_labyrinth, args=(0, self.robot_pos_list[0], to_visit_list[0], laby_to_explore_list[0], robot_para)))
         proc_list[0].start()
         proc_list.append(Process(target=self.correct_labyrinth, args=(1, self.robot_pos_list[1], to_visit_list[1], laby_to_explore_list[1], robot_para)))
         proc_list[1].start()
-        proc_list.append(Process(target=self.correct_labyrinth, args=(2, self.robot_pos_list[2], to_visit_list[2], laby_to_explore_list[2], robot_para)))
-        proc_list[2].start()
+        # proc_list.append(Process(target=self.correct_labyrinth, args=(2, self.robot_pos_list[2], to_visit_list[2], laby_to_explore_list[2], robot_para)))
+        # proc_list[2].start()
 
         # exploration data of robot
         to_visit = []
         deleted_edge = []
-        for i in range (0, 3):
+        for i in range (0, nbRobot):
             proc_list[i].join()
-        for i in range (0,3):
+        for i in range (0,nbRobot):
             to_visit += robot_para['to_visit_' + str(i)]
             deleted_edge += robot_para['deleted_edge_' + str(i)]
             self.robot_pos_list[i] = robot_para['robot_pos_' + str(i)]
@@ -943,8 +945,11 @@ def main_bidon():
 if __name__ == '__main__':
     # main()
     # main_bidon()
-    robotPosition = [(0,0),(3,0),(7,0)]
+    robotPosition = [(0,0),(2,4),(7,0)]
     arrive = (4,4)
-    server = Server('192.168.1.226',8,8,robotPosition)
+    server = Server('192.168.43.203',7,7,robotPosition)
+    server.connectA()
+    server.connectB()
+    # server.connectC()
     server.run()
     server.solve([(0,4), (0,0), (4,0)], arrive)
