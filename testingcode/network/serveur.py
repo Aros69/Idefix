@@ -276,7 +276,7 @@ def move_to_bidon(robot_pos, direction, laby, robot_list_pos):
     pos = robot_pos
     list_mvt = [pos]    
     can_go = True
-    if direction == 2:
+    if direction == 3:
         next_pos = (pos[0], pos[1] -1)
         while can_go:
             if not laby.has_edge(pos, next_pos):
@@ -289,7 +289,7 @@ def move_to_bidon(robot_pos, direction, laby, robot_list_pos):
                 pos = next_pos
                 next_pos = (next_pos[0], next_pos[1] - 1)
                 list_mvt.append(pos)
-    elif direction == 1:
+    elif direction == 2:
         next_pos = (pos[0] -1 , pos[1])
         while can_go:
             if not laby.has_edge(pos, next_pos):
@@ -302,7 +302,7 @@ def move_to_bidon(robot_pos, direction, laby, robot_list_pos):
                 pos = next_pos
                 next_pos = (next_pos[0] - 1, next_pos[1])
                 list_mvt.append(pos)
-    elif direction == 0:
+    elif direction == 1:
         next_pos = (pos[0], pos[1] + 1)
         while can_go:
             if not laby.has_edge(pos, next_pos):
@@ -316,7 +316,7 @@ def move_to_bidon(robot_pos, direction, laby, robot_list_pos):
                 next_pos = (next_pos[0], next_pos[1] + 1)
                 list_mvt.append(pos)
 
-    elif direction == 3:
+    elif direction == 0:
         next_pos = (pos[0] + 1, pos[1])
         while can_go:
             if not laby.has_edge(pos, next_pos):
@@ -501,6 +501,19 @@ def solve_conf_bidon(lab, pos, end: int):
                 visit.add(new.loc)
     return
 
+def traductionMouvement(input):
+    mouvement = input%4
+    indice_robot = input // 4
+    return indice_robot, Direction(mouvement)
+
+def mouvement(laby, input, liste_positions):
+    indice_robot, direction = traductionMouvement(input)
+    pos,liste = move_to_bidon(liste_positions[indice_robot], direction.value, laby, liste_positions)
+    liste_positions[indice_robot] = liste[-1]
+    return indice_robot, direction.name , liste
+
+    
+
 
 
 def main_bidon():
@@ -660,6 +673,9 @@ def main_bidon():
         print("position final des robots: ", robots_pos.loc)
         print ("liste des mouvements ")
         print (robots_pos.move)
+        # print ([ traductionMouvement(k) for k in robots_pos.move])
+        print ([ mouvement(laby, k, robot_list_pos) for k in robots_pos.move])
+    print(traductionMouvement(1))
         
     ############### Drawing #####################
     pos = dict( (n, n) for n in laby.nodes() )
