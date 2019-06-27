@@ -4,12 +4,14 @@ from enum import Enum
 class dataID(Enum):
     commandFail = -1
     commandSuccess = 0
-    
+
 class ServerCommand: 
     _pos = None
     _dataId = None
     def __init__(self, id):
         self._dataId = id
+    def __str__(self):
+        return "Server Command : ID = " + str(self._dataId) + " \n"
     def setPos(self,pos) :
         self._pos = pos
     def setId(self,id) :

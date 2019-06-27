@@ -76,6 +76,7 @@ class Server:
 
     def handleResponse(self, id, command):
         print("Received response from ", id , " \nHandling it...")
+        print("Response = ", command)
         #Take into account if response is None
 
 
@@ -101,15 +102,17 @@ class Server:
             print("Waiting for robot A's response")
             data = self.robotASocket.recv(4096)
             commandReceive = pickle.loads(data)
-
+            self.handleResponse(id,commandReceive)
         elif(id == "b" or id == "B"):
             print("Waiting for robot B's response")
             data = self.robotBSocket.recv(4096)
             commandReceive = pickle.loads(data)
+            self.handleResponse(id,commandReceive)
         elif(id == "c" or id == "C"):
             print("Waiting for robot C's response")
             data = self.robotCSocket.recv(4096)
             commandReceive = pickle.loads(data)
+            self.handleResponse(id,commandReceive)
         else :
             print("BAD ROBOT ID")
 
@@ -151,6 +154,7 @@ class Server:
                 commandToSend = RobotCommand()
             command = [s for s in tmp.split()]
             self.send(command[0],commandToSend)
+            self.receive(command[0])
         self.closeSockets()
 
     '''
@@ -431,55 +435,12 @@ def debug_print(*args, **kwargs):
 def main():
     '''The main function of our program'''
 
-    # connexion = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Création du socket server
-    # connexion.bind(('192.168.43.203', 4242)) # Définition du port et du nom hote
-    # connexion.listen(5) # Définition du nombre de connexion en cours d'acceptation
-    # debug_print('On attend un client')
-    # socketClient, infoClient = connexion.accept() # Fonction d'acceptation d'un client (fonction bloquante)
-    # debug_print('On a reçu un client')
-    # debug_print(infoClient)
     server = Server('192.168.43.203')
     server.connectA()
     server.connectB()
     server.connectC()
     server.loopCommands()
-    #server.connectA()
-    # stopConnexion = False
-    # while(not(stopConnexion)):
-    #     tmp = input()
-    #     if(tmp=="z"):
-    #         commandToSend = RobotMoveForward()
-    #     elif(tmp =="s"):
-    #         commandToSend = RobotTurn180()
-    #     elif(tmp == "q"):
-    #         commandToSend = RobotTurnLeft()
-    #     elif(tmp == "d"):
-    #         commandToSend = RobotTurnRight()
-    #     elif(tmp == "f"):
-    #         commandToSend = RobotTurnRight()
-    #     elif("north" in tmp):
-    #         number = [int(s) for s in tmp.split() if s.isdigit()]
-    #         commandToSend = RobotGoThere(0,number[0])
-    #     elif("east" in tmp):
-    #         number = [int(s) for s in tmp.split() if s.isdigit()]
-    #         commandToSend = RobotGoThere(1,number[0])
-    #     elif("south" in tmp):
-    #         number = [int(s) for s in tmp.split() if s.isdigit()]
-    #         # number[0] is the unit with which to turn
-    #         commandToSend = RobotGoThere(2,number[0])
-    #     elif("west" in tmp):
-    #         number = [int(s) for s in tmp.split() if s.isdigit()]
-    #         # number[0] is the unit with which to turn
-    #         print()
-    #         commandToSend = RobotGoThere(3,number[0])
-    #     elif(tmp == "quit" or tmp == "exit"):
-    #         stopConnexion = True
-    #         commandToSend = RobotCommand()
-    #     else:
-    #         commandToSend = RobotCommand()
-    #     data_string = pickle.dumps(commandToSend)
-    #     socketClient.send(data_string)
-    # socketClient.close()
+    
 
 def move_to_bidon(robot_pos, direction, laby, robot_list_pos):
     pos = robot_pos

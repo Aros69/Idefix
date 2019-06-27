@@ -54,8 +54,8 @@ class RobotTwin:
         self._threadSonic.start()
         self._threadColor.start()
         sleep(1)
-        # self.scanColor()
-        # self.setCardinalPoint()
+        self.scanColor()
+        self.setCardinalPoint()
 
     ''' 0 = Robot orienté face au mur de la TD 6 (couleur droite = noire et couleur gauche = blanc 
     1 = Robot orienté face au couloir (couleur droite = noire et couleur gauche = rouge 
