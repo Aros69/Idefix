@@ -11,10 +11,11 @@ from threading import Timer, Thread, Event
 
 # sys.path.insert(0, "/your/path/to/idefix") # if you want to execute main in this file
 # sys.path.insert(0, "/home/baoanh/Travail/Master1/idefix/")
-#sys.path.insert(0, "/home/robin/Master/IDEFIX/idefix/")
-#from testingcode.exploration.labyrinthe import Labyrinthe
+sys.path.append(os.path.realpath('../../'))
+print(sys.path,sys.stderr)
+from testingcode.robots.bot import bot
 
-class RobotTank:
+class RobotTank(bot):
     # DATA
     _motors = None
     _leftMotor = None
@@ -29,9 +30,12 @@ class RobotTank:
     _threadSonic = None
     _threadColor = None
     _stopThread = False
-    _labyrinthe = None
     _position = None  # Tuple (i,j)
-
+    ''' 0 = Robot orienté face au mur de la TD 6 (couleur droite = noire et couleur gauche = blanc 
+    1 = Robot orienté face au couloir (couleur droite = noire et couleur gauche = rouge 
+    2 = Robot orienté face au bureau du prof (couleur droite = blanc et couleur gauche = noire 
+    3 = Robot orienté face au fenetre (couleur droite = rouge et couleur gauche = noire '''
+    _cardinalPoint = -1
     # METHODS
     def __init__(self, leftMotor, rightMotor, colorSensor, ultrasonicSensor, compassSensor, position, labyrinthe):
         self._motors = MoveTank(leftMotor, rightMotor)
@@ -49,11 +53,13 @@ class RobotTank:
         self._threadColor.start()
         time.sleep(1)
         self._position = position
-        # self._labyrinthe = Labyrinthe(0, 0, 8,8, position)
+        
         # self._labyrinthe = labyrinthe
-
-        self._labyrinthe.init2DGraph()
-
+        # self._labyrinthe = Labyrinthe(0, 0, 8,8, position)
+        # self._labyrinthe.init2DGraph()
+    def goThere(self,newDirection, step):
+        print ("Going somewhere...",sys.stderr)
+        
     def turnLeft(self):
         angleObjectif = (self._baseAngle + 90) % 360
         self.bothMotorsRotation(30, -30, -0.85)
@@ -211,18 +217,39 @@ class RobotTank:
     :return: True if labyrinthe corrected else other robot have to help
     '''
 
+<<<<<<< Updated upstream
     def correct_labyrinth(self, to_visit):
 
         # calculate all shortest path.
         path_block = False
+=======
+    # def correct_labyrinth(self):
 
-        while len(to_visit) > 0 and not path_block:
-            path = self._labyrinthe.nearest_node(to_visit)
+    #     # calculate all shortest path.
+    #     to_visit = self._labyrinthe.not_visited_node()
+    #     path_block = False
+>>>>>>> Stashed changes
 
+    #     while len(to_visit) > 0 and not path_block:
+    #         path = self._labyrinthe.nearest_node(to_visit)
+
+<<<<<<< Updated upstream
             path_block = self.try_to_go(path)
+=======
+    #         # if there are a path
+    #         if len(path) > 0:
+    #             sucess = self.robot_follow(path)
+
+    #             if (sucess):
+    #                 edges = self.robot_scan()
+    #                 self._labyrinthe.graph.remove_edges_from(edges)
+    #                 to_visit.remove((path[-1]))
+    #         else:
+    #             path_block = True
+>>>>>>> Stashed changes
 
         # to_visit is now a list of not achieved path that other robot need to check
-        return not path_block, to_visit
+        # return not path_block, to_visit
 
         # transforme into robot direction mouvement
         # if chemin don't exist.
@@ -256,8 +283,8 @@ class RobotTank:
     def get_position(self):
         return self._position
 
-    def get_labyrinthe(self):
-        return self._labyrinthe
+    # def get_labyrinthe(self):
+    #     return self._labyrinthe
 
 
 def main():

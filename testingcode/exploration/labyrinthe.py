@@ -180,6 +180,28 @@ class Labyrinthe:
         else:
             val = None
         return val
+    def path2Command(self,path):
+        #print("Converting path to command \n path is ", path)
+        command = []
+        for i in range(len(path) - 1) :
+            direction = self.direction(path[i],path[i+1]).value
+            command.append((direction,1))
+        #print("Converted path is ", command)
+        return command
+
+    def edge_by_direction(self, pos, direction):
+        if direction == 2:
+            next_pos = (pos[0], pos[1] -1)
+        elif direction == 1:
+            next_pos = (pos[0] -1 , pos[1])
+        elif direction == 0:
+            next_pos = (pos[0], pos[1] + 1)
+        elif direction == 3:
+            next_pos = (pos[0] + 1, pos[1])
+        else:
+            print("direction not recognized")
+
+        return (pos, next_pos)
 
     def get_robot_pos(self):
         return self.robot_pos
