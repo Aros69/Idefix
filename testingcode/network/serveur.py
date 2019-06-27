@@ -15,6 +15,7 @@ from networkx.drawing import nx_agraph
 import re
 import matplotlib.pyplot as plt
 import copy
+import matplotlib.animation
 
 from command import Command
 from RobotCommand.Commands import *
@@ -826,6 +827,53 @@ def mouvement(laby, input, liste_positions):
     return indice_robot, direction.name , liste
 
     
+def animation(laby, robot_list_pos, arrive, mouvements):
+    fig, ax = plt.subplots(figsize=(10,10))
+    pos = dict( (n, n) for n in laby.nodes() )
+    sequence = [(0,0),(0,1),(0,2),(1,0),(1,1),(1,2)]
+    ani = matplotlib.animation.FuncAnimation(fig, update, frames=6, interval=1000, repeat=True, fargs=(laby, arrive, pos, ax, robot_list_pos, mouvements))
+    plt.show()
+
+def update(num, laby, arrive, pos, ax, robot_list_pos, mouvements):
+    ax.clear()
+    if len(mouvements) > 0 :
+        if len(mouvements[0][2]) > 0 :
+            indice_robot, position = mouvements[0][0], mouvements[0][2].pop(0)
+            robot_list_pos[indice_robot] = position
+        else :
+            mouvements.pop(0)
+            if len(mouvements) > 0 :
+                indice_robot, position = mouvements[0][0], mouvements[0][2].pop(0)
+                robot_list_pos[indice_robot] = position
+        
+
+    # nx.draw_networkx(laby, pos = pos)
+    i = num // 3
+    path = robot_list_pos
+    
+    # Background nodes
+    nx.draw_networkx_edges(laby, pos=pos, ax=ax, edge_color="gray")
+    null_nodes = nx.draw_networkx_nodes(laby, pos=pos, nodelist=set(laby.nodes()) - set(path) - set(arrive), node_color="white",  ax=ax)
+    null_nodes.set_edgecolor("black")
+
+    # Query nodes
+    query_nodes = nx.draw_networkx_nodes(laby, pos=pos, nodelist=[arrive], node_color="yellow", ax=ax)
+    query_nodes = nx.draw_networkx_nodes(laby, pos=pos, nodelist=[path[0]], node_color="red", ax=ax)
+    query_nodes = nx.draw_networkx_nodes(laby, pos=pos, nodelist=[path[1]], node_color="green", ax=ax)
+    query_nodes = nx.draw_networkx_nodes(laby, pos=pos, nodelist=[path[2]], node_color="blue", ax=ax)
+    
+
+    # query_nodes = nx.draw_networkx_nodes(laby, pos=pos, nodelist=path, node_color="blue", ax=ax)
+    query_nodes.set_edgecolor("purple")
+    # nx.draw_networkx_labels(laby, pos=pos, labels=dict(zip(path,path)),  font_color="blue", ax=ax)
+    # edgelist = [path[k:k+2] for k in range(len(path) - 1)]
+    # nx.draw_networkx_edges(laby, pos=pos, edgelist=edgelist, ax=ax)
+
+    # Scale plot ax
+    ax.set_title("Frame %d:    "%(num+1) + str(path), fontweight="bold")
+    ax.set_xticks([])
+    ax.set_yticks([])
+
 
 
 
@@ -928,6 +976,7 @@ def main_bidon():
     robots_pos = solve_conf_bidon(laby, pos,
                 arrive[0] * 8 + arrive[1])
 
+    mouvements = []
 
     if robots_pos == None:
         print ("impossible")
@@ -936,7 +985,7 @@ def main_bidon():
         print ("liste des mouvements ")
         print (robots_pos.move)
         # print ([ traductionMouvement(k) for k in robots_pos.move])
-        print ([ mouvement(laby, k, robot_list_pos) for k in robots_pos.move])
+        mouvements = [ mouvement(laby, k, robot_list_pos) for k in robots_pos.move]
     print(traductionMouvement(1))
         
     ############### Drawing #####################
@@ -954,8 +1003,9 @@ def main_bidon():
     nx.draw_networkx_nodes(laby,pos,
                        nodelist=[arrive],
                        node_color='yellow')
-    plt.axis('off')
-    plt.show()
+    # plt.axis('off')
+    # plt.show()
+    animation(laby, [robotTankPos, robotTwins1Pos, robotTwins2Pos], arrive, mouvements)
 
     
     # pos = dict( (n, n) for n in robot_para['laby_1'].nodes() )

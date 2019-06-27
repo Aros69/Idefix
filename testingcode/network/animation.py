@@ -213,7 +213,7 @@ idx_weights = [3,2,1]
 fig2, ax2 = plt.subplots(figsize=(5,5))
 # fig2 = nx.draw_networkx(laby, pos = pos)
 
-def update2(num):
+def update2(num, k):
     
     ax2.clear()
     nx.draw_networkx(laby, pos = pos)
@@ -235,11 +235,11 @@ def update2(num):
     nx.draw_networkx_edges(laby, pos=pos, edgelist=edgelist, ax=ax2)
 
     # Scale plot ax
-    ax2.set_title("Frame %d:    "%(num+1) + str(path), fontweight="bold")
+    ax2.set_title("Frame %d:    "%(num+1) + str(path) + str(k), fontweight="bold")
     ax2.set_xticks([])
     ax2.set_yticks([])
 
-ani2 = matplotlib.animation.FuncAnimation(fig2, update2, frames=6, interval=1000, repeat=True)
+ani2 = matplotlib.animation.FuncAnimation(fig2, update2, frames=6, interval=1000, repeat=True, fargs=(0,))
 plt.show()
 
 
