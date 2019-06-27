@@ -95,31 +95,40 @@ class RobotTwin:
             self.orientationCorrection()
 
     def moveForward(self, nbCase):
-        if(not(self._isWallAhead)):
-            # run forever with timer and modification of power
-            leftPower = 15
-            rightPower = 15
-            inCorrection = False
-            c = Chrono()
-            c.start()
-            while(c.getTime() < 4.2*nbCase) :# timer < nbSeconde pour atteindre une case
-                if(not(inCorrection)):
-                    if(self._actualColor==self._rightColor):
-                        self.stopMotors()
-                        c.pause()
-                        self.colorCorrection()
-                        c.restart()
-                    elif(self._actualColor==self._colorSensor.COLOR_BROWN):
-                        self.stopMotors()
-                        c.pause()
-                        self.colorCorrection()
-                        c.restart()
-                self.runForever(leftPower, rightPower)
-            self.stopMotors()
+        j=0
+        while j < nbCase:
+            if(not(self._isWallAhead)):
+                # run forever with timer and modification of power
+                leftPower = 15
+                rightPower = 15
+                inCorrection = False
+                c = Chrono()
+                c.start()
+                compenseCouleurDroite = False
+                while(c.getTime() < 3.95 and not(self._isWallAhead)) :# timer < nbSeconde pour atteindre une case
+                    if(not(inCorrection)):
+                        if(self._actualColor == self._leftColor):
+                            leftPower = 15
+                            rightPower = 15
+                            compenseCouleurDroite = False
+                        elif(compenseCouleurDroite or self._actualColor==self._rightColor):
+                            leftPower = 13
+                            rightPower = 17
+                            compenseCouleurDroite = True
+                        elif(self._actualColor==self._colorSensor.COLOR_BROWN):
+                            leftPower = 17
+                            rightPower = 13
+                        else:
+                            leftPower = 15
+                            rightPower = 15
+                            compenseCouleurDroite = False
+                    self.runForever(leftPower, rightPower)
+                self.stopMotors()
+                sleep(1)
+                #self._baseAngle = self._compassSensor.value()
+                self.orientationCorrection()
             sleep(1)
-            self._baseAngle = self._compassSensor.value()
-            self.orientationCorrection()
-        sleep(1)
+            j+=1
 
     def moveForwardOneSquare2(self):
         self.moveForward(1)
@@ -199,7 +208,9 @@ class RobotTwin:
         time.sleep(1)
 
     def stopMotors(self):
+        self.runForever(-1, -1)
         self._motors.off()
+
     
     def getAngle(self):
         self._actualAngle = self._compassSensor.value()
@@ -267,7 +278,7 @@ class RobotTwin:
 
     def setIsWallAhead(self):
         while(not(self._stopThread)):
-            self._isWallAhead = self._ultrasonicSensor.distance_centimeters<10
+            self._isWallAhead = self._ultrasonicSensor.distance_centimeters<6
             #print(self._ultrasonicSensor.distance_centimeters, file=sys.stderr)
 
     def setColor(self):
@@ -287,12 +298,10 @@ class RobotTwin:
 def main():
     twin = RobotTwin(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4, INPUT_2)
 
-    #twin.moveForwardOneSquare2()
-
     i=0
     x=-1
     while(i<100):
-        x = random.randrange(3)
+        x = random.randrange(6)
         if(x == 2):
             twin.turn180()
             twin.moveForwardOneSquare2()
@@ -302,8 +311,8 @@ def main():
         elif (x==1):
             twin.turnRight()
             twin.moveForwardOneSquare2()
-        '''else:
-            twin.moveForwardOneSquare2()'''
+        else:
+            twin.moveForwardOneSquare2()
         i+=1
         print(i, file=sys.stderr)
     
