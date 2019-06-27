@@ -351,6 +351,7 @@ def main():
     
 def move_to_bidon(robot_pos, direction, laby, robot_list_pos):
     pos = robot_pos
+    list_mvt = [pos]    
     can_go = True
     if direction == 2:
         next_pos = (pos[0], pos[1] -1)
@@ -364,6 +365,7 @@ def move_to_bidon(robot_pos, direction, laby, robot_list_pos):
             if can_go:
                 pos = next_pos
                 next_pos = (next_pos[0], next_pos[1] - 1)
+                list_mvt.append(pos)
     elif direction == 1:
         next_pos = (pos[0] -1 , pos[1])
         while can_go:
@@ -376,7 +378,7 @@ def move_to_bidon(robot_pos, direction, laby, robot_list_pos):
             if can_go:
                 pos = next_pos
                 next_pos = (next_pos[0] - 1, next_pos[1])
-
+                list_mvt.append(pos)
     elif direction == 0:
         next_pos = (pos[0], pos[1] + 1)
         while can_go:
@@ -389,6 +391,8 @@ def move_to_bidon(robot_pos, direction, laby, robot_list_pos):
             if can_go:
                 pos = next_pos
                 next_pos = (next_pos[0], next_pos[1] + 1)
+                list_mvt.append(pos)
+
     elif direction == 3:
         next_pos = (pos[0] + 1, pos[1])
         while can_go:
@@ -401,11 +405,12 @@ def move_to_bidon(robot_pos, direction, laby, robot_list_pos):
             if can_go:
                 pos = next_pos
                 next_pos = (next_pos[0] + 1, next_pos[1])
+                list_mvt.append(pos)
 
     else:
         print("direction not recognized")
 
-    return pos
+    return pos, list_mvt
     
 
 def correct_labyrinth_bidon(id, output_para, robot_pos, labyrinth, to_visit):
@@ -552,7 +557,7 @@ def solve_conf_bidon(lab, pos, end: int):
             tmp = current.loc // (64**((2+i//4)%3)) % 64
             pos_r2 = (tmp // 8, tmp % 8)
             
-            pos_r0 = move_to_bidon(pos_r0, i%4, lab, [pos_r0, pos_r1, pos_r2])
+            pos_r0, bidon = move_to_bidon(pos_r0, i%4, lab, [pos_r0, pos_r1, pos_r2])
 
             new = copy.deepcopy(current)
             tmp = pos_r0[0] * 8 + pos_r0[1]
@@ -578,6 +583,7 @@ def solve_conf_bidon(lab, pos, end: int):
 
 def main_bidon():
     ####### data robot #############
+    # robotTankDirection = 0
     robotTankPos = (0,0)
     robotTwins1Pos = (3,0)
     robotTwins2Pos = (4,0)
@@ -590,6 +596,10 @@ def main_bidon():
     largeur = 8
     longueur = 8
     laby_size = (largeur,longueur)
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6b2831a2308ef10f43a36453217b06dc4575df8e
 
 
     # the complete graph
@@ -605,7 +615,11 @@ def main_bidon():
     to_visit_r2 = node_not_explored[allnodesDiviseBy3:2*allnodesDiviseBy3]
     to_visit_r3 = node_not_explored[2*allnodesDiviseBy3:]
 
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 6b2831a2308ef10f43a36453217b06dc4575df8e
     proc_list.append(Process(target=correct_labyrinth_bidon, args=(0, robot_para, robotTankPos, laby_complet, to_visit_r1)))
     proc_list[0].start()
     proc_list.append(Process(target=correct_labyrinth_bidon, args=(1, robot_para, robotTwins1Pos, laby_complet, to_visit_r2)))
@@ -702,10 +716,10 @@ def main_bidon():
     print ("fin operation liste des noeuds : ", to_visit)
     laby = laby_complet.graph
     ################ SOLVER #####################
-    robotTankPos = (0,0)
-    robotTwins1Pos = (7,0)
-    robotTwins2Pos = (0, 7)
-    arrive = (7,7)
+    robotTankPos = (0,4)
+    robotTwins1Pos = (0,0)
+    robotTwins2Pos = (4,0)
+    arrive = (2,2)
 
     robot_list_pos = [robotTankPos, robotTwins1Pos, robotTwins2Pos]
     pos = Pos(((robot_list_pos[2][0]*8+robot_list_pos[2][1])* 64 
@@ -727,10 +741,20 @@ def main_bidon():
     ############### Drawing #####################
     pos = dict( (n, n) for n in laby.nodes() )
     nx.draw_networkx(laby, pos = pos) 
+    nx.draw_networkx_nodes(laby,pos,
+                       nodelist=[robotTankPos],
+                       node_color='white')
+    nx.draw_networkx_nodes(laby,pos,
+                       nodelist=[robotTwins1Pos],
+                       node_color='blue')
+    nx.draw_networkx_nodes(laby,pos,
+                       nodelist=[robotTwins2Pos],
+                       node_color='purple')
+    nx.draw_networkx_nodes(laby,pos,
+                       nodelist=[arrive],
+                       node_color='yellow')
     plt.axis('off')
     plt.show()
-
-
 
 
 if __name__ == '__main__':
