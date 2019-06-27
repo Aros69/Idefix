@@ -14,6 +14,7 @@ import networkx as nx
 from networkx.drawing import nx_agraph
 import re
 import matplotlib.pyplot as plt
+import matplotlib.animation
 
 
 from command import Command
@@ -23,8 +24,8 @@ from RobotCommand.turn180 import RobotTurn180
 from RobotCommand.turnLeft import RobotTurnLeft
 from RobotCommand.turnRight import RobotTurnRight
 
-sys.path.insert(0, "D:\\Data\\Travail\\Universite\\master\\idefix")
-# sys.path.append("/home/etu/p1406781/Informatique/M1/IDEFIX/idefix")
+# sys.path.insert(0, "D:\\Data\\Travail\\Universite\\master\\idefix")
+sys.path.append("/home/etu/p1406781/Informatique/M1/IDEFIX/idefix")
 from testingcode.exploration.labyrinthe import Labyrinthe
 from testingcode.exploration.directionEnum import Direction
 import testingcode.solver.solve
@@ -591,6 +592,53 @@ def mouvement(laby, input, liste_positions):
     return indice_robot, direction.name , liste
 
     
+def animation(laby, robot_list_pos, arrive, mouvements):
+    fig, ax = plt.subplots(figsize=(10,10))
+    pos = dict( (n, n) for n in laby.nodes() )
+    sequence = [(0,0),(0,1),(0,2),(1,0),(1,1),(1,2)]
+    ani = matplotlib.animation.FuncAnimation(fig, update, frames=6, interval=1000, repeat=True, fargs=(laby, arrive, pos, ax, robot_list_pos, mouvements))
+    plt.show()
+
+def update(num, laby, arrive, pos, ax, robot_list_pos, mouvements):
+    ax.clear()
+    if len(mouvements) > 0 :
+        if len(mouvements[0][2]) > 0 :
+            indice_robot, position = mouvements[0][0], mouvements[0][2].pop(0)
+            robot_list_pos[indice_robot] = position
+        else :
+            mouvements.pop(0)
+            if len(mouvements) > 0 :
+                indice_robot, position = mouvements[0][0], mouvements[0][2].pop(0)
+                robot_list_pos[indice_robot] = position
+        
+
+    # nx.draw_networkx(laby, pos = pos)
+    i = num // 3
+    path = robot_list_pos
+    
+    # Background nodes
+    nx.draw_networkx_edges(laby, pos=pos, ax=ax, edge_color="gray")
+    null_nodes = nx.draw_networkx_nodes(laby, pos=pos, nodelist=set(laby.nodes()) - set(path) - set(arrive), node_color="white",  ax=ax)
+    null_nodes.set_edgecolor("black")
+
+    # Query nodes
+    query_nodes = nx.draw_networkx_nodes(laby, pos=pos, nodelist=[arrive], node_color="yellow", ax=ax)
+    query_nodes = nx.draw_networkx_nodes(laby, pos=pos, nodelist=[path[0]], node_color="red", ax=ax)
+    query_nodes = nx.draw_networkx_nodes(laby, pos=pos, nodelist=[path[1]], node_color="green", ax=ax)
+    query_nodes = nx.draw_networkx_nodes(laby, pos=pos, nodelist=[path[2]], node_color="blue", ax=ax)
+    
+
+    # query_nodes = nx.draw_networkx_nodes(laby, pos=pos, nodelist=path, node_color="blue", ax=ax)
+    query_nodes.set_edgecolor("purple")
+    # nx.draw_networkx_labels(laby, pos=pos, labels=dict(zip(path,path)),  font_color="blue", ax=ax)
+    # edgelist = [path[k:k+2] for k in range(len(path) - 1)]
+    # nx.draw_networkx_edges(laby, pos=pos, edgelist=edgelist, ax=ax)
+
+    # Scale plot ax
+    ax.set_title("Frame %d:    "%(num+1) + str(path), fontweight="bold")
+    ax.set_xticks([])
+    ax.set_yticks([])
+
 
 
 
@@ -609,10 +657,6 @@ def main_bidon():
     largeur = 8
     longueur = 8
     laby_size = (largeur,longueur)
-<<<<<<< HEAD
-=======
-
->>>>>>> 6b2831a2308ef10f43a36453217b06dc4575df8e
 
 
     # the complete graph
@@ -628,11 +672,7 @@ def main_bidon():
     to_visit_r2 = node_not_explored[allnodesDiviseBy3:2*allnodesDiviseBy3]
     to_visit_r3 = node_not_explored[2*allnodesDiviseBy3:]
 
-<<<<<<< HEAD
-
-=======
     
->>>>>>> 6b2831a2308ef10f43a36453217b06dc4575df8e
     proc_list.append(Process(target=correct_labyrinth_bidon, args=(0, robot_para, robotTankPos, laby_complet, to_visit_r1)))
     proc_list[0].start()
     proc_list.append(Process(target=correct_labyrinth_bidon, args=(1, robot_para, robotTwins1Pos, laby_complet, to_visit_r2)))
@@ -743,6 +783,7 @@ def main_bidon():
     robots_pos = solve_conf_bidon(laby, pos,
                 arrive[0] * 8 + arrive[1])
 
+    mouvements = []
 
     if robots_pos == None:
         print ("impossible")
@@ -751,7 +792,7 @@ def main_bidon():
         print ("liste des mouvements ")
         print (robots_pos.move)
         # print ([ traductionMouvement(k) for k in robots_pos.move])
-        print ([ mouvement(laby, k, robot_list_pos) for k in robots_pos.move])
+        mouvements = [ mouvement(laby, k, robot_list_pos) for k in robots_pos.move]
     print(traductionMouvement(1))
         
     ############### Drawing #####################
@@ -769,13 +810,14 @@ def main_bidon():
     nx.draw_networkx_nodes(laby,pos,
                        nodelist=[arrive],
                        node_color='yellow')
-    plt.axis('off')
-    plt.show()
+    # plt.axis('off')
+    # plt.show()
+    animation(laby, [robotTankPos, robotTwins1Pos, robotTwins2Pos], arrive, mouvements)
 
 
 if __name__ == '__main__':
     # main()
-    # main_bidon()
+    main_bidon()
 
-    server = Server(6,6)
-    server.run()
+    # server = Server(6,6)
+    # server.run()
