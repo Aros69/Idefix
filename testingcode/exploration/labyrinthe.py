@@ -87,13 +87,18 @@ class Labyrinthe:
     '''
         graph must be define
     '''
-    def init_cut_graph(self,x1,x2, y1, y2):
+    def init_cut_graph(self,node1, node2):
+        x1, y1 = node1
+        s = x1 * (self.offset_y + self.dim_y) + y1
+        x2, y2 = node2
+        e = x2 * (self.offset_y + self.dim_y) + y2
         self.cut_graph = copy.deepcopy(self.graph)
         
         for i in range (self.offset_x, self.offset_x + self.dim_x):
             for j in range (self.offset_y, self.offset_y + self.dim_y):
-                if not (i >= x1 and i <= x2 and j >= y1 and j <= y2):
-                    self.cut_graph.remove_node(i, j)
+                v = i * (self.offset_y + self.dim_y) + j
+                if v < s or v > e:
+                    self.cut_graph.remove_node((i, j))
 
         return self.cut_graph
     
