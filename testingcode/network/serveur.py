@@ -76,6 +76,7 @@ class Server:
 
     def handleResponse(self, id, command):
         print("Received response from ", id , " \nHandling it...")
+        print("Response = ", command)
         #Take into account if response is None
 
 
@@ -101,15 +102,17 @@ class Server:
             print("Waiting for robot A's response")
             data = self.robotASocket.recv(4096)
             commandReceive = pickle.loads(data)
-
+            self.handleResponse(id,commandReceive)
         elif(id == "b" or id == "B"):
             print("Waiting for robot B's response")
             data = self.robotBSocket.recv(4096)
             commandReceive = pickle.loads(data)
+            self.handleResponse(id,commandReceive)
         elif(id == "c" or id == "C"):
             print("Waiting for robot C's response")
             data = self.robotCSocket.recv(4096)
             commandReceive = pickle.loads(data)
+            self.handleResponse(id,commandReceive)
         else :
             print("BAD ROBOT ID")
 
@@ -151,6 +154,7 @@ class Server:
                 commandToSend = RobotCommand()
             command = [s for s in tmp.split()]
             self.send(command[0],commandToSend)
+            self.receive(command[0])
         self.closeSockets()
 
     '''
@@ -440,8 +444,8 @@ def main():
     # debug_print(infoClient)
     server = Server('192.168.43.203')
     server.connectA()
-    server.connectB()
-    server.connectC()
+    # server.connectB()
+    # server.connectC()
     server.loopCommands()
     #server.connectA()
     # stopConnexion = False

@@ -31,9 +31,8 @@ class Client:
 
     def send(self,data):
         print("sending data to server")
-        data_string = pickle.dumps(commandToSend)
-        if(id == "a" or id == "A"):
-            self.robotASocket.send(data_string)
+        data_string = pickle.dumps(data)
+        self.connexion.send(data_string)
 
     def loop(self):
         print("Client Loop started")
@@ -47,6 +46,9 @@ class Client:
             print("Robot set")
             commandReceive.doCommand()
             print("Command ran")
+            # Sending response back to server
+            commandToSend = ServerCommand(0)
+            self.send(commandToSend)
             commandReceive = RobotCommand()
         
     
