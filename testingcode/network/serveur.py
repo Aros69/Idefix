@@ -390,17 +390,17 @@ class Server:
         plt.show()
 
     def create_laby_1(self):
-        self.labyrinthe = Labyrinthe(0,0,3,5, (0,0))
+        self.labyrinth = Labyrinthe(0,0,3,5, (0,0))
         self.labyrinth.init2DGraph()
         edges = [((0,3),(1,3)),((1,3),(2,3))]
         self.labyrinth.graph.remove_edges_from(edges)
     def create_laby_2(self):
-        self.labyrinthe = Labyrinthe(0,0,5,2,(0,0))
+        self.labyrinth = Labyrinthe(0,0,5,3, (0,0))
         self.labyrinth.init2DGraph()
         edges = [((3,0),(3,1)),((3,1),(3,2))]
         self.labyrinth.graph.remove_edges_from(edges)
     def create_laby_3(self):
-        self.labyrinthe = Labyrinthe(0,0,5,5, (0,0))
+        self.labyrinth = Labyrinthe(0,0,5,5, (0,0))
         self.labyrinth.init2DGraph()
         edges = [((0,0),(0,1)),((1,0),(1,1)),((2,2),(2,3))]
         self.labyrinth.graph.remove_edges_from(edges)
@@ -1056,11 +1056,24 @@ if __name__ == '__main__':
     # main()
     # main_bidon()
     robotPosition = [(0,0),(2,4),(7,0)]
-    arrive = (2,1)
     server = Server('192.168.1.47',3,5,robotPosition, 2, True)
     # server.connectA()
     # server.connectB()
     # server.connectC()
     # server.run()
-    server.create_laby_2()
-    server.solve([(0,0), (1,0), (0,1)], arrive, True)
+
+
+    ######### Resolve laby 1 ########## 
+    # arrive = (1,3)
+    # server.create_laby_1()
+    # server.solve([(2,0), (1,0), (2,1)], arrive, True)
+
+    ######### Resolve laby 2 ########## 
+    # arrive = (2,1)
+    # server.create_laby_2()
+    # server.solve([(0,0), (1,0), (0,1)], arrive, True)
+
+    ######### Resolve laby 3 ########## 
+    # arrive = (2,2)
+    # server.create_laby_3()
+    # server.solve([(0,0), (4,0), (4,4)], arrive, True)
