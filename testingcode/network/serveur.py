@@ -402,7 +402,7 @@ class Server:
     def create_laby_3(self):
         self.labyrinthe = Labyrinthe(0,0,5,5, (0,0))
         self.labyrinth.init2DGraph()
-        edges = [((0,4),(1,4)),((0,3),(1,3)),((2,2),(3,2))]
+        edges = [((0,0),(0,1)),((1,0),(1,1)),((2,2),(2,3))]
         self.labyrinth.graph.remove_edges_from(edges)
 
     def solve(self, robotPos, arrive, animation = False):
