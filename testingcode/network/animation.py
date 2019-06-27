@@ -163,12 +163,6 @@ def move_to_bidon(robot_pos, direction, laby, robot_list_pos):
     return pos
 
 
-# Create Graph
-np.random.seed(2)
-G = nx.cubical_graph()
-G = nx.relabel_nodes(G, {0:"O", 1:"X", 2:"XZ", 3:"Z", 4:"Y", 5:"YZ", 6: "XYZ", 7:"XY"})
-pos = nx.spring_layout(G)
-
 laby_size = (4,4)
 laby_complet = Labyrinthe(0,0,laby_size[0],laby_size[1], (0,0))
 laby_complet.init2DGraph()
@@ -213,64 +207,83 @@ robot_list_pos = [robotTankPos, robotTwins1Pos, robotTwins2Pos]
 # plt.axis('off')
 # plt.show()
 
+pos = dict( (n, n) for n in laby.nodes() )
+sequence = [(0,0),(0,1),(0,2),(1,0),(1,1),(1,2)]
+idx_weights = [3,2,1]
+fig2, ax2 = plt.subplots(figsize=(5,5))
+# fig2 = nx.draw_networkx(laby, pos = pos)
+
+def update2(num):
+    
+    ax2.clear()
+    nx.draw_networkx(laby, pos = pos)
+    i = num // 3
+    j = num % len(sequence)
+    triad = sequence[i:i+3]
+    path = [sequence[j]]
+    print(path)
+    # Background nodes
+    nx.draw_networkx_edges(laby, pos=pos, ax=ax2, edge_color="gray")
+    null_nodes = nx.draw_networkx_nodes(laby, pos=pos, nodelist=set(laby.nodes()) - set(path), node_color="red",  ax=ax2)
+    null_nodes.set_edgecolor("purple")
+
+    # Query nodes
+    query_nodes = nx.draw_networkx_nodes(laby, pos=pos, nodelist=path, node_color="grey", ax=ax2)
+    query_nodes.set_edgecolor("white")
+    nx.draw_networkx_labels(laby, pos=pos, labels=dict(zip(path,path)),  font_color="blue", ax=ax2)
+    edgelist = [path[k:k+2] for k in range(len(path) - 1)]
+    nx.draw_networkx_edges(laby, pos=pos, edgelist=edgelist, ax=ax2)
+
+    # Scale plot ax
+    ax2.set_title("Frame %d:    "%(num+1) + str(path), fontweight="bold")
+    ax2.set_xticks([])
+    ax2.set_yticks([])
+
+ani2 = matplotlib.animation.FuncAnimation(fig2, update2, frames=6, interval=1000, repeat=True)
+plt.show()
+
+
+# Create Graph
+np.random.seed(2)
+G = nx.cubical_graph()
+G = nx.relabel_nodes(G, {0:"O", 1:"X", 2:"XZ", 3:"Z", 4:"Y", 5:"YZ", 6: "XYZ", 7:"XY"})
+pos = nx.spring_layout(G)
+
 # Sequence of letters
 sequence_of_letters = "".join(['X', 'Y', 'Z', 'Y', 'Y', 'Z'])
-# sequence_of_letters = [(0,0),(0,1)]
 idx_weights = [3,2,1]
 
 # Build plot
 fig, ax = plt.subplots(figsize=(5,5))
-fig2, ax2 = plt.subplots(figsize=(6,4))
+
 
 
 def update(num):
     ax.clear()
     i = num // 3
     j = num % 3 + 1
-    triad = sequence_of_letters
+    triad = sequence_of_letters[i:i+3]
     path = ["O"] + ["".join(sorted(set(triad[:k + 1]))) for k in range(j)]
+    # print(path)
 
     # Background nodes
-    nx.draw_networkx_edges(G, pos=pos, ax=ax, edge_color="gray")
-    null_nodes = nx.draw_networkx_nodes(G, pos=pos, nodelist=set(G.nodes()) - set(path), node_color="white",  ax=ax)
-    null_nodes.set_edgecolor("black")
+    # nx.draw_networkx_edges(G, pos=pos, ax=ax, edge_color="gray")
+    # null_nodes = nx.draw_networkx_nodes(G, pos=pos, nodelist=set(G.nodes()) - set(path), node_color="white",  ax=ax)
+    # null_nodes.set_edgecolor("black")
 
-    # Query nodes
-    query_nodes = nx.draw_networkx_nodes(G, pos=pos, nodelist=path, node_color="grey", ax=ax)
-    query_nodes.set_edgecolor("white")
-    nx.draw_networkx_labels(G, pos=pos, labels=dict(zip(path,path)),  font_color="white", ax=ax)
-    edgelist = [path[k:k+2] for k in range(len(path) - 1)]
-    nx.draw_networkx_edges(G, pos=pos, edgelist=edgelist, width=idx_weights[:len(path)], ax=ax)
+    # # Query nodes
+    # query_nodes = nx.draw_networkx_nodes(G, pos=pos, nodelist=path, node_color="grey", ax=ax)
+    # query_nodes.set_edgecolor("white")
+    # nx.draw_networkx_labels(G, pos=pos, labels=dict(zip(path,path)),  font_color="white", ax=ax)
+    # edgelist = [path[k:k+2] for k in range(len(path) - 1)]
+    # nx.draw_networkx_edges(G, pos=pos, edgelist=edgelist, ax=ax)
 
     # Scale plot ax
     ax.set_title("Frame %d:    "%(num+1) +  " - ".join(path), fontweight="bold")
     ax.set_xticks([])
     ax.set_yticks([])
 
-def update2(num):
-    ax2.clear()
-    triad = sequence_of_letters[num%2]
-    path = [(0,0)] + [triad]; 
-
-    # Background nodes
-    nx.draw_networkx_edges(laby_complet, pos=pos, ax=ax2, edge_color="gray")
-    null_nodes = nx.draw_networkx_nodes(laby_complet, pos=pos, nodelist=set(G.nodes()) - set(path), node_color="white",  ax=ax)
-    null_nodes.set_edgecolor("black")
-
-    # Query nodes
-    query_nodes = nx.draw_networkx_nodes(laby_complet, pos=pos, nodelist=path, node_color="grey", ax=ax2)
-    query_nodes.set_edgecolor("white")
-    nx.draw_networkx_labels(laby_complet, pos=pos, labels=dict(zip(path,path)),  font_color="white", ax=ax2)
-    edgelist = [path[k:k+2] for k in range(len(path) - 1)]
-    nx.draw_networkx_edges(laby_complet, pos=pos, edgelist=edgelist, width=idx_weights[:len(path)], ax=ax2)
-
-    # Scale plot ax
-    ax2.set_title("Frame %d:    "%(num+1) +  " - ".join(path), fontweight="bold")
-    ax2.set_xticks([])
-    ax2.set_yticks([])
-
-
-
 ani = matplotlib.animation.FuncAnimation(fig, update, frames=6, interval=1000, repeat=True)
-# ani = matplotlib.animation.FuncAnimation(fig2, update2, frames=6, interval=1000, repeat=True)
-plt.show()
+
+# ani2 = matplotlib.animation.FuncAnimation(fig2, update2, frames=6, interval=1000, repeat=True)
+# plt.show()
