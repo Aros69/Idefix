@@ -102,12 +102,17 @@ class Labyrinthe:
 
         return self.cut_graph
     
-    def nearest_node(self, target_nodes):
+    def nearest_node(self, target_nodes, on_cut_laby = False):
+        if on_cut_laby:
+            laby = self.cut_graph
+        else:
+            laby = self.graph
+
         short_path = []
         short_path_lg = self.dim_x * self.dim_y
         for target in target_nodes:
-            if nx.has_path(self.graph, self.robot_pos, target):
-                path = nx.shortest_path(self.graph, self.robot_pos, target)
+            if nx.has_path(laby, self.robot_pos, target):
+                path = nx.shortest_path(laby, self.robot_pos, target)
 
                 if len(path) < short_path_lg:
                     short_path_lg = len(path)
@@ -177,7 +182,7 @@ class Labyrinthe:
         return val
 
     def get_robot_pos(self):
-        return (self.robot.pos_x, self.robot.pos_y)
+        return self.robot_pos
 
     def adjacents(self, node):
         return self.graph.neighbors(node)

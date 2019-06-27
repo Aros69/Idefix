@@ -34,9 +34,14 @@ import copy
 
 class Server:
     def __init__(self, dim_x, dim_y):
-        robot_0_pos = (0,0)
-        robot_1_pos = (2,0)
-        robot_2_pos = (3,0)
+        self.robot_0_pos = (0,0)
+        self.robot_1_pos = (3,0)
+        self.robot_2_pos = (6,0)
+
+        self.robot_pos_list = [self.robot_0_pos, self.robot_1_pos, self.robot_2_pos]
+
+        self.robot_pos_list_s = [(0,4), (0,0), (4,0)]
+        self.arrive = (2,2)
 
         self.graph_dim = (dim_x,dim_y)
         self.labyrinth = Labyrinthe(0,0,dim_x,dim_y, (0,0)) # position robot not
@@ -55,7 +60,7 @@ class Server:
         path_block = False
 
         while len(to_visit) > 0 and not path_block:
-            path = laby.nearest_node(to_visit)
+            path = laby.nearest_node(to_visit, True)
             # if there are a path (we also consider case where robot is already on correct case for generic)
             if len(path) > 0:
             
@@ -65,15 +70,49 @@ class Server:
                     to_visit.remove(path[-1])
             else:
                 path_block = True
-        
+
         output_para['to_visit_' + str(id)] = to_visit
         output_para['laby_' + str(id)] = laby.graph
         output_para['deleted_edge_' + str(id)] = edges_deleted
+        output_para['robot_pos_' + str(id)] = laby.get_robot_pos()
+
+
+    '''
+        we suppose self.robot_list_pos is updated and will be updated
+    '''
+    def correct_labyrinth_final(self, to_visit):
+        path_block = False # Path block should never be true
+        while len(to_visit) > 0 and not path_block:
+
+            # find nearest node between 3 robots
+            self.labyrinth.set_robot_pos(self.robot_pos_list[0])
+            path = None
+            current_robot = 0
+            for i in range(0, len(self.robot_pos_list)):
+                self.labyrinth.set_robot_pos(self.robot_pos_list[i])
+                new_path = self.labyrinth.nearest_node(to_visit)
+                
+                if (path == None or len(new_path) < len(path)) and len(new_path) > 0 :
+                    path = new_path
+                    current_robot = i
+            
+            # if there are a path (we also consider case where robot is already on correct case for generic)
+            if path is not None and len(path) > 0:
+                success, self.labyrinth, bidon = self.try_to_go(path, self.labyrinth)
+                
+                # update position
+                self.robot_pos_list[current_robot] = self.labyrinth.get_robot_pos()
+
+                if success:
+                    to_visit.remove(path[-1])
+            else:
+                path_block = True
+        
 
 
     '''
         make robot try to follow a path
-        :return: updated laby
+        :return: success, updated laby, edges deleted
     '''
     def try_to_go(self, path, laby):
         success = None
@@ -112,17 +151,20 @@ class Server:
 
             laby.graph.remove_edges_from(edges_deleted)
             laby.cut_graph.remove_edges_from(edges_deleted)
-            to_visit.remove((path[-1]))
         
         ### robot get blocked during moving
         else:
+            edges_deleted.append((path[node_block-1],  path[node_block]))
             ###### simulation of block during go to node ####
             laby.set_robot_pos(path[node_block-1])
-            laby.graph.remove_edge(path[node_block-1],  path[node_block])
-            edges_deleted.append((path[node_block-1],  path[node_block]))
+            laby.graph.remove_edges_from(edges_deleted)
+            laby.cut_graph.remove_edges_from(edges_deleted)
+
             ##### end of simulation
+            # TODO remove edges from to avoid limit case
             # laby.set_robot_pos(edge_block[0]) # socket get position
             # laby.graph.remove(edge_block) # socket get edge deleted
+            # laby.cut_graph.remove(...)
             ####### real code up #######
 
 
@@ -157,49 +199,52 @@ class Server:
             laby_to_explore_list[i].init_cut_graph(node_not_explored[s],node_not_explored[e-1])
 
 
-        ############### NOT finish to code ###########
+        proc_list.append(Process(target=self.correct_labyrinth, args=(0, self.robot_pos_list[0], to_visit_list[0], laby_to_explore_list[0], robot_para)))
+        proc_list[0].start()
+        proc_list.append(Process(target=self.correct_labyrinth, args=(1, self.robot_pos_list[1], to_visit_list[1], laby_to_explore_list[1], robot_para)))
+        proc_list[1].start()
+        proc_list.append(Process(target=self.correct_labyrinth, args=(2, self.robot_pos_list[2], to_visit_list[2], laby_to_explore_list[2], robot_para)))
+        proc_list[2].start()
 
-        # i = 0
-        # for robot in self.robot_list:
-        #     proc_list.append(Process(target=robot.correct_labyrinth, args=(i, to_vist)))
-        #     proc_list[i].start()
-        #     i += 1
-
-        # not_visited = []
-        # for i in range (0, len(self.robot_list)):
-        #     proc_list[i].join()
-        #     laby = nx.union(laby, self.robot_list[i].get_labyrinthe())
-        #     not_visited.append(to_vist[i])
+        # exploration data of robot
+        to_visit = []
+        deleted_edge = []
+        for i in range (0, 3):
+            proc_list[i].join()
+        for i in range (0,3):
+            to_visit += robot_para['to_visit_' + str(i)]
+            deleted_edge += robot_para['deleted_edge_' + str(i)]
+            self.robot_pos_list[i] = robot_para['robot_pos_' + str(i)]
         
+        self.labyrinth.graph.remove_edges_from(deleted_edge)
 
-        # second step to adjuste laby
-        # robots = [self.robotTank, self.robotTwins1, self.robotTwins2]
-        # while len(to_visit) > 0:
-        #     short_path = []
-        #     short_path_lg = self.graph_dim[0] * self.graph_dim[1]
-        #     i = 0
-        #     for robot in robots:
-        #         if nx.has_path(self.graph, robot.get_position(), to_visit[-1]):
-        #             path = nx.shortest_path(self.graph, robot.get_position(), to_visit[-1])
 
-        #             if len(path) < short_path_lg:
-        #                 short_path_lg = len(path)
-        #                 short_path = path
-        #                 robot_id = i
-        #         else:
-        #             print("ERROR : no path found , impossible case")
-        #             break
-                
-        #         i += 1
 
-        #     success = robots[robot_id].robot_follow(short_path)
+        ########## finish to complet labyrinth ##############
+        self.labyrinth.init_cut_graph((0,0), (self.graph_dim))
+        # update robot pos (socket or maybe already update with correct)
+        self.correct_labyrinth_final(to_visit)
 
-        #     if (success):
-        #         edges = self.robot_scan()
-        #         laby.graph.remove_edges_from(edges)
-        #         to_visit.remove((path[-1]))
+        ############# 
+        pos = Pos(((self.robot_pos_list_s[2][0]*8+self.robot_pos_list_s[2][1])* 64 
+        + self.robot_pos_list_s[1][0]*8+self.robot_pos_list_s[1][1])* 64 
+        + self.robot_pos_list_s[0][0] * 8 + self.robot_pos_list_s[0][1], [])
         
-        # self.labyrinth = laby
+        robots_pos = self.solve_conf(self.labyrinth.graph, pos, self.arrive[0] * 8 + self.arrive[1])
+
+        if robots_pos == None:
+            print ("impossible")
+        else:
+            print("position final des robots: ", robots_pos.loc)
+            print ("liste des mouvements ")
+            print (robots_pos.move)
+
+        ######## drawing ##############
+        pos = dict( (n, n) for n in self.labyrinth.graph.nodes() )
+        nx.draw_networkx(self.labyrinth.graph, pos = pos) 
+        plt.axis('off')
+        plt.show()
+
 
     def move_to(self, robot_p, direction):
         pos = robot_p.get_position()
@@ -256,59 +301,39 @@ class Server:
             print("direction not recognized") 
 
 
-    def move_to_bidon(self, robot_pos, direction):
-        pos = robot_pos
-        can_go = True
-        if direction == 2: #Direction.LEFT
-            next_pos = (pos[0], pos[1] -1)
-            while can_go:
-                if not self.labyrinth.has_edge((pos, next_pos)):
-                    can_go = False
-                for r_pos in self.robot_list_pos:
-                    if next_pos == r_pos:
-                        can_go = False
+    def solve_conf(self, lab, pos, end: int):
+        todo = [pos]
+        visit = {pos.loc}
+        while len(todo) > 0:
+            current = todo[0]
+            del todo[0]
+            for i in range(12):
+                tmp = current.loc // (64**(i//4)) % 64
+                pos_r0 = (tmp // 8, tmp % 8)
+                tmp = current.loc // (64**((1+i//4)%3)) % 64
+                pos_r1 = (tmp // 8, tmp % 8)
+                tmp = current.loc // (64**((2+i//4)%3)) % 64
+                pos_r2 = (tmp // 8, tmp % 8)
                 
-                if can_go:
-                    pos = next_pos
-                    next_pos[1] -= 1
-        elif direction == 1: #Direction.UP
-            next_pos = (pos[0] -1 , pos[1])
-            while can_go:
-                if not self.labyrinth.has_edge((pos, next_pos)):
-                    can_go = False
-                for r_pos in self.robot_list_pos:
-                    if next_pos == r_pos:
-                        can_go = False
+                pos_r0, bidon = move_to_bidon(pos_r0, i%4, lab, [pos_r0, pos_r1, pos_r2])
+
+                new = copy.deepcopy(current)
+                tmp = pos_r0[0] * 8 + pos_r0[1]
+                new.loc = tmp * 64 ** (i//4)
+                tmp = pos_r1[0] * 8 + pos_r1[1]
+                new.loc += tmp * 64 ** ((i//4 + 1) % 3)
+                tmp = pos_r2[0] * 8 + pos_r2[1]
+                new.loc += tmp * 64 ** ((i//4 + 2) % 3)
+                new.move.append(i)
                 
-                if can_go:
-                    pos = next_pos
-                    next_pos[0] -= 1
-        elif direction == 0: #Direction.RIGHT
-            next_pos = (pos[0], pos[1] + 1)
-            while can_go:
-                if not self.labyrinth.has_edge((pos, next_pos)):
-                    can_go = False
-                for r_pos in self.robot_list_pos:
-                    if next_pos == r_pos:
-                        can_go = False
-                
-                if can_go:
-                    pos = next_pos
-                    next_pos[1] += 1
-        elif direction == 3: #Direction.DOWN
-            next_pos = (pos[0] + 1, pos[1])
-            while can_go:
-                if not self.labyrinth.has_edge((pos, next_pos)):
-                    can_go = False
-                for r_pos in self.robot_list_pos:
-                    if next_pos == r_pos:
-                        can_go = False
-                
-                if can_go:
-                    pos = next_pos
-                    next_pos[0] += 1
-        else:
-            print("direction not recognized")
+
+                if not(new.loc in visit):
+                    if new.loc % 64 == end:
+                        return new
+                    todo.append(new)
+                    visit.add(new.loc)
+        return
+
 
 def debug_print(*args, **kwargs):
     '''Print debug messages to stderr.
@@ -596,10 +621,6 @@ def main_bidon():
     largeur = 8
     longueur = 8
     laby_size = (largeur,longueur)
-<<<<<<< HEAD
-=======
-
->>>>>>> 6b2831a2308ef10f43a36453217b06dc4575df8e
 
 
     # the complete graph
@@ -615,11 +636,7 @@ def main_bidon():
     to_visit_r2 = node_not_explored[allnodesDiviseBy3:2*allnodesDiviseBy3]
     to_visit_r3 = node_not_explored[2*allnodesDiviseBy3:]
 
-<<<<<<< HEAD
-
-=======
     
->>>>>>> 6b2831a2308ef10f43a36453217b06dc4575df8e
     proc_list.append(Process(target=correct_labyrinth_bidon, args=(0, robot_para, robotTankPos, laby_complet, to_visit_r1)))
     proc_list[0].start()
     proc_list.append(Process(target=correct_labyrinth_bidon, args=(1, robot_para, robotTwins1Pos, laby_complet, to_visit_r2)))
@@ -664,8 +681,6 @@ def main_bidon():
                 path = new_path
                 current_robot = i
         
-        print ("le chemin a faire du robot : ", current_robot, " a faire :")
-        print (path)
 
 
         # if there are a path (we also consider case where robot is already on correct case for generic)
@@ -761,5 +776,5 @@ if __name__ == '__main__':
     # main()
     # main_bidon()
 
-    server = Server(6,6)
+    server = Server(8,8)
     server.run()
