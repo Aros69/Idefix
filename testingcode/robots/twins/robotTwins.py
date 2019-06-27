@@ -131,7 +131,11 @@ class RobotTwin:
             j+=1
 
     def moveForwardOneSquare2(self):
-        self.moveForward(1)
+        if(not(self._isWallAhead)):
+            self.moveForward(1)
+            return 0
+        else:
+            return -1
         
 
     def turnLeft(self):
@@ -168,6 +172,15 @@ class RobotTwin:
         self._baseAngle = angleObjectif
         self.orientationCorrection()
         #print("Orientation = ", self._cardinalPoint, file=sys.stderr)
+
+    def scanWalls(self):
+        res = [[0,0], [0,0], [0,0], [0,0]]
+        i=0
+        while(i<4):
+            res[i] = [self._cardinalPoint, self._isWallAhead]
+            self.turnLeft()
+            i+=1
+        return res
 
     def colorCorrection(self):
         directionIsDefined = False
