@@ -8,9 +8,9 @@ import pickle
 from ev3dev2.motor import OUTPUT_A, OUTPUT_D
 from ev3dev2.sensor import INPUT_1, INPUT_2, INPUT_4
 
-sys.path.append('../')
+sys.path.append(os.path.realpath('../../'))
 
-from robots.twins.robotTwins import RobotTwin
+from testingcode.robots.twins.robotTwins import RobotTwin
 from RobotCommand.Commands import *
 from ServerCommand.Commands import *
 def debug_print(*args, **kwargs):
@@ -68,7 +68,10 @@ def main():
     # Debug print
 
     #bot = RobotTwin(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4, INPUT_3)
-    client = Client('192.168.43.203')
+    # Config Ali
+    # client = Client('192.168.43.203')
+    # Config Robin
+    client = Client('10.42.0.1')
     client.loop()
     client.closeConnection()
     stopConnexion = False

@@ -23,6 +23,7 @@ from ServerCommand.Commands import *
 
 
 sys.path.append(os.path.realpath('../../'))
+#sys.path.append("../../")
 from testingcode.exploration.labyrinthe import Labyrinthe
 from testingcode.exploration.directionEnum import Direction
 from testingcode.solver.maze import Pos
@@ -42,6 +43,13 @@ class Server:
 
     labyrinth = None
     robot_list = []
+
+    def animation(self, laby, robot_list_pos, arrive, mouvements):
+        fig, ax = plt.subplots(figsize=(10,10))
+        pos = dict( (n, n) for n in laby.nodes() )
+        #sequence = [(0,0),(0,1),(0,2),(1,0),(1,1),(1,2)]
+        ani = matplotlib.animation.FuncAnimation(fig, update, frames=6, interval=1000, repeat=True, fargs=(laby, arrive, pos, ax, robot_list_pos, mouvements))
+        plt.show()
         
     def __init__(self,ip,dim_x, dim_y, robotPos, nb_robot = 3, simulation = False):
         print("init maze data")
@@ -267,10 +275,12 @@ class Server:
         
             r_path_indice = 0
             for command in commands :
+                print("On est a l'etape : ", r_path_indice)
                 status = self.sendCommand(id,RobotGoThere(command[0],command[1]))
                 if(status._dataId == -1): #Fail
                     success = False
                 elif(status._dataId == 0): #Success
+                    print("J'ai réussi y aller ", path[r_path_indice])
                     print("")
                     r_path_indice += 1
                     success = True
@@ -427,14 +437,17 @@ class Server:
         # plt.axis('off')
         # plt.show()
 
+        temp = copy.deepcopy(self.robot_pos_list)
         if robots_pos is not None and animation:
-            mouvements = [ mouvement(self.labyrinth.graph, k, self.robot_pos_list) for k in robots_pos.move]
+            mouvements = [ mouvement(self.labyrinth.graph, k, temp) for k in robots_pos.move]
+            taMere = copy.deepcopy(mouvements)
             self.draw_anim(mouvements, arrive)
+        return taMere
 
     def draw_anim(self, mouvements, arrive):
         laby = self.labyrinth.graph
         ############### Drawing #####################
-        pos = dict( (n, n) for n in laby.nodes() )
+        '''pos = dict( (n, n) for n in laby.nodes() )
         nx.draw_networkx(laby, pos = pos) 
         nx.draw_networkx_nodes(laby,pos,
                         nodelist=[self.robot_pos_list[0]],
@@ -447,10 +460,10 @@ class Server:
                         node_color='purple')
         nx.draw_networkx_nodes(laby,pos,
                         nodelist=[arrive],
-                        node_color='yellow')
+                        node_color='yellow')'''
         # plt.axis('off')
         # plt.show()
-        animation(laby, self.robot_pos_list, arrive, mouvements)
+        self.animation(laby, self.robot_pos_list, arrive, mouvements)
 
 
     def move_to(self, robot_p, direction):
@@ -865,15 +878,10 @@ def mouvement(laby, input, liste_positions):
     indice_robot, direction = traductionMouvement(input)
     pos,liste = move_to_bidon(liste_positions[indice_robot], direction.value, laby, liste_positions)
     liste_positions[indice_robot] = liste[-1]
-    return indice_robot, direction.name , liste
+    return indice_robot, direction, liste
 
     
-def animation(laby, robot_list_pos, arrive, mouvements):
-    fig, ax = plt.subplots(figsize=(10,10))
-    pos = dict( (n, n) for n in laby.nodes() )
-    sequence = [(0,0),(0,1),(0,2),(1,0),(1,1),(1,2)]
-    ani = matplotlib.animation.FuncAnimation(fig, update, frames=6, interval=1000, repeat=True, fargs=(laby, arrive, pos, ax, robot_list_pos, mouvements))
-    plt.show()
+
 
 def update(num, laby, arrive, pos, ax, robot_list_pos, mouvements):
     ax.clear()
@@ -891,7 +899,6 @@ def update(num, laby, arrive, pos, ax, robot_list_pos, mouvements):
     # nx.draw_networkx(laby, pos = pos)
     i = num // 3
     path = robot_list_pos
-    
     # Background nodes
     nx.draw_networkx_edges(laby, pos=pos, ax=ax, edge_color="gray")
     null_nodes = nx.draw_networkx_nodes(laby, pos=pos, nodelist=set(laby.nodes()) - set(path) - set(arrive), node_color="white",  ax=ax)
@@ -1051,29 +1058,58 @@ def main_bidon():
     # plt.axis('off')
     # plt.show()
 
+def moveSolve(server, listCommand):
+    for k in listCommand:
+        temp = k[1].value
+        #print(temp)
+        '''if(k[1]=='RIGHT'):
+            temp = 0
+        elif(k[1]=='LEFT'):
+            temp = 2
+        elif(k[1]=='UP'):
+            temp = 1
+        elif(k[1]=='DOWN'):
+            temp = 3'''
+        status = server.sendCommand(k[0],RobotGoThere(temp,len(k[2])-1))
+        
+        if(status._dataId == -1): #Fail
+            success = False
+        elif(status._dataId == 0): #Success
+            print("J'ai réussi y aller ")
+            print("")
+            success = True
+    print()
+
 
 if __name__ == '__main__':
     # main()
     # main_bidon()
-    robotPosition = [(0,0),(2,4),(7,0)]
-    server = Server('192.168.1.47',3,5,robotPosition, 2, True)
-    # server.connectA()
-    # server.connectB()
-    # server.connectC()
-    # server.run()
-
-
-    ######### Resolve laby 1 ########## 
-    # arrive = (1,3)
-    # server.create_laby_1()
-    # server.solve([(2,0), (1,0), (2,1)], arrive, True)
-
-    ######### Resolve laby 2 ########## 
-    # arrive = (2,1)
-    # server.create_laby_2()
-    # server.solve([(0,0), (1,0), (0,1)], arrive, True)
+    #robotPosition = [(1,0),(2,4),(7,0)]
+    robotPosition = [(0,1),(2,1),(4,0)]
+    # Config Ali
+    #server = Server('192.168.1.47',3,5,robotPosition, 2, True)
+    # Config Robin 
+    server = Server('10.42.0.1',5,3,robotPosition, 3, False)
+    server.connectA()
+    server.connectB()
+    server.connectC()
+    #server.run()
+    #server.loopCommands()
 
     ######### Resolve laby 3 ########## 
-    # arrive = (2,2)
-    # server.create_laby_3()
-    # server.solve([(0,0), (4,0), (4,4)], arrive, True)
+    arrive = (2,2)
+    server.create_laby_3()
+    x = server.solve([(4,0), (4,4), (0,4)], arrive, True)
+    moveSolve(server, x)
+
+    ######### Resolve laby 1 ########## 
+    arrive = (1,3)
+    server.create_laby_1()
+    x = (server.solve([(2,0), (1,0), (2,1)], arrive, True))
+    moveSolve(server, x)
+
+    ######### Resolve laby 2 ########## 
+    arrive = (2,1)
+    server.create_laby_2()
+    x = server.solve([(0,0), (1,0), (0,1)], arrive, True)
+    moveSolve(server, x)

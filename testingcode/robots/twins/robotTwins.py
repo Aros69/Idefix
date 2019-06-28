@@ -9,7 +9,7 @@ import os, sys, time, random
 from threading import Timer, Thread, Event
 from time import sleep
 
-sys.path.append(os.path.realpath('../../'))
+sys.path.append(os.path.realpath('../../../'))
 from testingcode.chronometre import Chrono
 
 class RobotTwin:
@@ -105,7 +105,7 @@ class RobotTwin:
                 c = Chrono()
                 c.start()
                 compenseCouleurDroite = False
-                while(c.getTime() < 3.95 and not(self._isWallAhead)) :# timer < nbSeconde pour atteindre une case
+                while(c.getTime() < 3.95) :# timer < nbSeconde pour atteindre une case
                     if(not(inCorrection)):
                         if(self._actualColor == self._leftColor):
                             leftPower = 15
@@ -291,7 +291,7 @@ class RobotTwin:
 
     def setIsWallAhead(self):
         while(not(self._stopThread)):
-            self._isWallAhead = self._ultrasonicSensor.distance_centimeters<6
+            self._isWallAhead = self._ultrasonicSensor.distance_centimeters<10
             #print(self._ultrasonicSensor.distance_centimeters, file=sys.stderr)
 
     def setColor(self):
@@ -310,6 +310,10 @@ class RobotTwin:
 
 def main():
     twin = RobotTwin(OUTPUT_A, OUTPUT_D, INPUT_1, INPUT_4, INPUT_2)
+
+    twin.turnLeft()
+    twin.turnRight()
+    twin.moveForwardOneSquare2()
 
     i=0
     x=-1
